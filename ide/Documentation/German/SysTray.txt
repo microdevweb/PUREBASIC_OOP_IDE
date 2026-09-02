@@ -1,0 +1,269 @@
+﻿;
+;     SysTray library documentation
+;
+;      (c) 2025 - Fantaisie Software
+;
+
+@Library SysTray
+
+@Overview
+  Der SysTray (auch "System Tray" genannt) ist der rechte Bereich der Taskleiste und
+  enthält einige Symbole (Icons) sowie Datum und Uhrzeit. PureBasic bietet vollen Zugriff
+  auf diesen Bereich und die Möglichkeit, beliebig viele Symbole hinzuzufügen.
+  @LineBreak
+  @LineBreak
+  Auf einigen Linux-Distributionen (wie Ubuntu) können die SystTray-Icons standardmäßig
+  auch versteckt sein. Für weitere Informationen siehe diesen
+  @InternetLink "http://ubuntugenius.wordpress.com/2011/06/25/ubuntu-11-04-fix-show-all-iconsindicators-in-unity-panels-notification-area/" "Link".
+
+@CommandList
+
+@ExampleFile All SysTray.pb
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = AddSysTrayIcon(#SysTrayIcon, WindowID, ImageID)
+
+@Description
+  Fügt ein Icon in den "SysTray" Bereich hinzu.
+@LineBreak
+@LineBreak
+  Wenn ein Ereignis auf irgendeinem der SysTray Icons auftritt, wird ein @#PB_Event_SysTray
+  Ereignis zurückgegeben. @@EventGadget kann benutzt werden, um das benutzte
+  SysTrayIcon zu ermitteln. Der @@EventType Befehl wird ebenfalls durch diesen
+  Befehl aktualisiert.
+
+@Parameter "#SysTrayIcon"
+  Eine Nummer zum Identifizieren des neuen SysTray-Icons.
+  @ReferenceLink "purebasic_objects" "#PB_Any" kann verwendet werden, um diese Zahl
+  automatisch zu generieren.
+  
+@Parameter "WindowID"
+  Das Fenster, auf dem die SysTray-Ereignisse verwaltet werden. @@WindowID kann
+  verwendet werden, um diesen Wert zu erhalten.
+  
+@Parameter "ImageID"
+  Das für das SysTray-Icon zu verwendende Bild.
+  Es ist ratsam, ein PNG-Bild zu verwenden, um einen Transparenz-Layer zu haben.
+  @@ImageID kann benutzt werden, um einfach diese ID zu ermitteln.
+
+@ReturnValue
+  Ein Wert ungleich Null, wenn das SysTray-Icon erfolgreich hinzugefügt wurde,
+  andernfalls Null.
+
+@Remarks
+  Alle SysTray-Icons werden automatisch entfernt, wenn das Programm endet. @LineBreak
+  Beim QT-Subsystem gibt der Linksklick ein Doppelklick-Linksklick-Ereignis zurück und
+  der Mittelklick ein Linksklick-Ereignis. @LineBreak
+  Für den normalen Betrieb muss ein Systray-Ereignis immer mit einem @LibraryLink "menu" "Menü" verknüpft sein.
+  
+@Example
+@Code
+  ; Unsichtbares Fenster, um nur den SysTray anzuzeigen
+  OpenWindow(0, 0, 0, 10, 10, "", #PB_Window_Invisible)
+
+  UsePNGImageDecoder()
+  AddSysTrayIcon(0, WindowID(0), LoadImage(0, #PB_Compiler_Home + "examples/sources/Data/world.png"))
+
+  ; Erstellt ein Popup-Menü, das im SysTray angezeigt wird
+  CreatePopupImageMenu(0)
+    MenuItem(0, "About PureBasic...")
+    MenuBar()
+    MenuItem(1, "Exit")
+
+  ; Verknüpft das Menü mit dem SysTray
+  SysTrayIconMenu(0, MenuID(0))
+
+  Repeat
+    Select WaitWindowEvent()
+      Case #PB_Event_Menu
+        Select EventMenu()
+          Case 1 ; Exit 
+            RemoveSysTrayIcon(0)
+            End
+        EndSelect
+    EndSelect
+  ForEver
+@EndCode
+
+@SeeAlso
+  @@RemoveSysTrayIcon, @@ChangeSysTrayIcon
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function ChangeSysTrayIcon(#SysTrayIcon, ImageID)
+
+@Description
+  Ändert das angegebene Icon im SysTray-Bereich.
+  
+@Parameter "#SysTrayIcon"
+  Das zu ändernde SysTray-Icon.
+  
+@Parameter "ImageID"
+  Das neue Bild, welches für das SysTray-Icon verwendet werden soll.
+  Es ist ratsam, ein PNG-Bild zu verwenden, um einen Transparenz-Layer zu haben.
+  @@ImageID kann benutzt werden, um einfach diese ID zu ermitteln.
+
+@NoReturnValue
+
+@Example
+@Code
+  ; Unsichtbares Fenster, um nur den SysTray anzuzeigen
+  OpenWindow(0, 0, 0, 10, 10, "", #PB_Window_Invisible)
+  
+  ; Erstellt ein Bild mit einer gelben Box, welches für das SysTray-Icon verwendet wird:
+  If CreateImage(0, 16, 16) And StartDrawing(ImageOutput(0))
+    Box(0, 0, 16 , 16, $00DDDD)
+    StopDrawing()
+  EndIf
+  
+  AddSysTrayIcon(0, WindowID(0), ImageID(0))
+  
+  ; Erstellt ein Pop-up Menü, welches später mit dem SysTray Icon verwendet wird:
+  CreatePopupImageMenu(0)
+    MenuItem(0, "Exit")
+    
+  ; Verknüpft das Menü mit dem SysTray
+  SysTrayIconMenu(0, MenuID(0))
+  
+  AddWindowTimer(0, 0, 1000) ; Fügt einen Window-Timer hinzu, der einen Wechsel des SysTray Icons aller 1000 ms auslösen soll
+  
+  Repeat
+    Select WaitWindowEvent()
+      Case #PB_Event_Timer
+        ; Aktualisiert das Bild des SysTray Icons mit einem zufälligen roten Kreis auf gelbem Hintergrund
+        If StartDrawing(ImageOutput(0))
+          Box(0, 0, 16 , 16, $00DDDD)
+          Radius = Random(6, 2)
+          Circle(8, 8, Radius, $0000DD)
+          StopDrawing()
+          ChangeSysTrayIcon(0, ImageID(0))
+        EndIf
+        
+      Case #PB_Event_Menu
+        Select EventMenu()
+          Case 0 ; Programm beenden nach einem Klick auf das 'Exit'-Menü, welches mit dem SysTray-Icon verknüpft wurde
+            RemoveSysTrayIcon(0)
+            End
+        EndSelect
+    EndSelect
+  ForEver
+@EndCode
+
+@SeeAlso
+  @@AddSysTrayIcon
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = IsSysTrayIcon(#SysTrayIcon)
+
+@Description
+  Überprüft, ob das angegebene SysTray-Icon gültig und korrekt initialisiert ist.
+
+@Parameter "#SysTrayIcon"
+  Das zu überprüfende SysTray-Icon.
+
+@ReturnValue
+  Ein Wert ungleich Null, wenn das SysTray-Icon gültig ist, andernfalls Null.
+
+@Remarks
+  Diese Funktion ist "kugelsicher" und kann mit jedem Wert benutzt werden. Dies ist der
+  richtige Weg, um sicher zu stellen, dass ein SysTray-Icon bereit zur Verwendung ist.
+
+@SeeAlso
+  @@AddSysTrayIcon
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function SysTrayIconMenu(#SysTrayIcon, MenuID)
+
+@Description
+  Ordnet das angegebene Popup-Menü dem SysTray-Icon zu. Dies ist die beste Möglichkeit,
+  ein Popup-Menü mit einem SysTray-Icon zu verknüpfen, da das Popup-Menü auf allen Betriebssystemen
+  an der richtigen Position angezeigt wird, wenn der Benutzer auf das Icon klickt.
+
+@Parameter "#SysTrayIcon"
+  Das zu verwendende SysTray-Icon.
+
+@Parameter "MenuID"
+  Das Popup-Menü, das mit dem SysTray verknüpft werden soll.
+  @@MenuID kann verwendet werden, um diesen Wert abzurufen.
+
+@NoReturnValue
+
+@Example
+@Code
+  ; Unsichtbares Fenster, um nur den SysTray anzuzeigen
+  OpenWindow(0, 0, 0, 10, 10, "", #PB_Window_Invisible)
+
+  UsePNGImageDecoder()
+  AddSysTrayIcon(0, WindowID(0), LoadImage(0, #PB_Compiler_Home + "examples/sources/Data/world.png"))
+
+  ; Erstellt ein Pop-up Menü, welches im SysTray angezeigt werden soll
+  CreatePopupMenu(0)
+    MenuItem(0, "About PureBasic...")
+    MenuBar()
+    MenuItem(1, "Exit")
+
+  ; Verknüpft das Menü mit dem SysTray
+  SysTrayIconMenu(0, MenuID(0))
+
+  Repeat
+    Select WaitWindowEvent()
+      Case #PB_Event_Menu
+        Select EventMenu()
+          Case 1 ; Exit 
+            RemoveSysTrayIcon(0)
+            End
+        EndSelect
+    EndSelect
+  ForEver
+@EndCode
+
+@SeeAlso
+  @@CreatePopupImageMenu
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function SysTrayIconToolTip(#SysTrayIcon, Text$)
+
+@Description
+  Verknüpft den angegebenen Text$ mit dem SysTray-Icon. Tooltip-Text ist der Text, welcher (in einer
+  gelben Box) angezeigt wird, wenn der Mauspfeil eine Weile über dem SysTray-Icon verharrt.
+
+@Parameter "#SysTrayIcon"
+  Das zu verwendende SysTray-Icon.
+
+@Parameter "Text$"
+  Der für den Tooltip des SysTray-Icons zu verwendende Text.
+
+@NoReturnValue
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function RemoveSysTrayIcon(#SysTrayIcon)
+
+@Description
+  Entfernt das angegebene SysTray-Icon.
+
+@Parameter "#SysTrayIcon"
+  Das zu entfernende SysTray-Icon. Wenn @#PB_All angegeben wird, dann werden alle verbliebenen SysTray-Icons freigegeben.
+  
+@NoReturnValue
+
+@Remarks  
+  Alle verbleibenden SysTray-Icons werden automatisch entfernt, wenn das Programm endet.
+
+@SupportedOS

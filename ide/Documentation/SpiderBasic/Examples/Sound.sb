@@ -1,0 +1,31 @@
+﻿;
+; ------------------------------------------------------------
+;
+;   SpiderBasic - Sound example file
+;
+;    (c) Fantaisie Software
+;
+; ------------------------------------------------------------
+;
+
+InitSound()
+
+Procedure PlayLazerEvent()
+  PlaySound(0)
+EndProcedure
+
+Procedure PlaySirenEvent()
+  PlaySound(1)
+EndProcedure
+
+LoadSound(0, "Data/Lazer.wav")
+LoadSound(1, "Data/Siren.ogg")
+
+If OpenWindow(0, 0, 0, 200, 90, "Sound example", #PB_Window_TitleBar | #PB_Window_SizeGadget | #PB_Window_ScreenCentered)
+  
+  ButtonGadget(0, 10, 10, 180, 30, "Play Lazer !")
+  ButtonGadget(1, 10, 50, 180, 30, "Play Siren !")
+  
+  BindGadgetEvent(0, @PlayLazerEvent())
+  BindGadgetEvent(1, @PlaySirenEvent())
+EndIf

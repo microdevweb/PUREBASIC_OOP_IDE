@@ -1,0 +1,56 @@
+﻿; ============================================================================
+; Exemple 01 : Classes de Base, Heritage et Polymorphisme
+; ============================================================================
+
+Class Animal
+  Protected nom.s
+  Protected age.i
+
+  Public Method Init(nom_p.s, age_p.i = 1)
+    This\nom = nom_p
+    This\age = age_p
+  EndMethod
+
+  Public Method Crier()
+    PrintN(This\nom + " emet un son generique.")
+  EndMethod
+
+  Public Method.s GetNom()
+    ProcedureReturn This\nom
+  EndMethod
+EndClass
+
+Class Chien Extends Animal
+  Protected race.s
+
+  Public Method Init(nom_p.s, race_p.s, age_p.i = 1)
+    Super::Init(nom_p, age_p)
+    This\race = race_p
+  EndMethod
+
+  Public Method Crier()
+    PrintN(This\nom + " (" + This\race + ") aboie : Wouaf ! Wouaf !")
+  EndMethod
+EndClass
+
+Class Chat Extends Animal
+  Public Method Crier()
+    PrintN(This\nom + " miaule : Miaou !")
+  EndMethod
+EndClass
+
+OpenConsole()
+PrintN("=== Demonstration PureBasic OOP : Classes & Polymorphisme ===")
+PrintN("")
+
+Define *monChien.Animal = New Chien("Rex", "Berger Allemand", 3)
+Define *monChat.Animal = New Chat("Minou", 2)
+
+; Appel polymorphique
+*monChien\Crier()
+*monChat\Crier()
+
+PrintN("")
+PrintN("Appuyez sur Entree pour quitter...")
+Input()
+CloseConsole()

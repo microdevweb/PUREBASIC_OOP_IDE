@@ -1,0 +1,43 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - TextBox.pbo
+; Standard Text Input / StringGadget wrapper
+; ============================================================================
+
+XIncludeFile "../Gadget.pbo"
+XIncludeFile "../Application.pbo"
+
+Namespace UI {
+
+  Class TextBox Extends Gadget {
+
+    Public Method Init(x_p.i, y_p.i, w_p.i = 150, h_p.i = 25, defaultText_p.s = "", flags_p.i = 0) {
+      This\x = x_p : This\y = y_p : This\width = w_p : This\height = h_p
+      This\isVisible = #True : This\isEnabled = #True
+      This\id = StringGadget(#PB_Any, x_p, y_p, w_p, h_p, defaultText_p, flags_p)
+      If (This\id) {
+        UI::RegisterGadget(This\id, This)
+      }
+    }
+
+    Public Method.b IsReadOnly() {
+      If (This\id And IsGadget(This\id)) {
+        ProcedureReturn GetGadgetAttribute(This\id, #PB_String_ReadOnly)
+      }
+      ProcedureReturn #False
+    }
+
+    Public Method SetReadOnly(ro.b) {
+      If (This\id And IsGadget(This\id)) {
+        SetGadgetAttribute(This\id, #PB_String_ReadOnly, ro)
+      }
+    }
+
+    Public Method Free() {
+      If (This\id) {
+        UI::UnregisterGadget(This\id)
+        Super::Free()
+      }
+    }
+  }
+
+}

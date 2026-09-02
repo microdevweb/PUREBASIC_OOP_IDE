@@ -1,0 +1,71 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - ToggleSwitch.pbo
+; Custom iOS-Style Toggle Switch Widget extending UI::CustomGadget
+; ============================================================================
+
+XIncludeFile "../CustomGadget.pbo"
+
+Namespace UI::Controls {
+
+  Class ToggleSwitch Extends UI::CustomGadget {
+    Protected isChecked.b
+    Protected activeColor.i
+    Protected inactiveColor.i
+
+    Public Method Init(x_p.i, y_p.i, w_p.i = 50, h_p.i = 26, defaultState_p.b = #False) {
+      Super::Init(x_p, y_p, w_p, h_p)
+      This\isChecked = defaultState_p
+      This\activeColor = RGB(52, 199, 89)      ; iOS Green
+      This\inactiveColor = RGB(200, 200, 205)  ; Light Gray
+      This\Redraw()
+    }
+
+    Public Method.b IsChecked() {
+      ProcedureReturn This\isChecked
+    }
+
+    Public Method SetChecked(state.b) {
+      This\isChecked = state
+      This\Redraw()
+    }
+
+    Public Method OnClick() {
+      This\isChecked = 1 - This\isChecked
+      This\Redraw()
+      This\OnChange()
+    }
+
+    Public Method OnPaint(w.i, h.i) {
+      ; Background fill
+      Box(0, 0, w, h, RGB(245, 245, 247))
+
+      ; Main Pill
+      Protected pillColor.i = This\inactiveColor
+      If (This\isChecked) {
+        pillColor = This\activeColor
+      }
+      If (This\isHovered) {
+        ; Slightly brighten on hover
+        pillColor = RGB(Red(pillColor) + 15, Green(pillColor) + 15, Blue(pillColor) + 15)
+      }
+
+      Protected radius.i = h / 2
+      RoundBox(1, 1, w - 2, h - 2, radius, radius, pillColor)
+
+      ; White circular thumb knob
+      Protected knobPadding.i = 3
+      Protected knobDiameter.i = h - (knobPadding * 2)
+      Protected knobRadius.i = knobDiameter / 2
+      Protected knobX.i = knobPadding
+      If (This\isChecked) {
+        knobX = w - knobDiameter - knobPadding
+      }
+
+      ; Subtle shadow under knob
+      Circle(knobX + knobRadius, radius + 1, knobRadius, RGB(180, 180, 180))
+      ; Knob circle
+      Circle(knobX + knobRadius, radius, knobRadius, RGB(255, 255, 255))
+    }
+  }
+
+}

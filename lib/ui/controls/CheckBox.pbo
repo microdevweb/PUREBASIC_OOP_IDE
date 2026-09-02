@@ -1,0 +1,43 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - CheckBox.pbo
+; Standard CheckBox wrapper
+; ============================================================================
+
+XIncludeFile "../Gadget.pbo"
+XIncludeFile "../Application.pbo"
+
+Namespace UI {
+
+  Class CheckBox Extends Gadget {
+
+    Public Method Init(x_p.i, y_p.i, w_p.i = 150, h_p.i = 25, text_p.s = "CheckBox", flags_p.i = 0) {
+      This\x = x_p : This\y = y_p : This\width = w_p : This\height = h_p
+      This\isVisible = #True : This\isEnabled = #True
+      This\id = CheckBoxGadget(#PB_Any, x_p, y_p, w_p, h_p, text_p, flags_p)
+      If (This\id) {
+        UI::RegisterGadget(This\id, This)
+      }
+    }
+
+    Public Method.b IsChecked() {
+      If (This\id And IsGadget(This\id)) {
+        ProcedureReturn GetGadgetState(This\id)
+      }
+      ProcedureReturn #False
+    }
+
+    Public Method SetChecked(checked.b) {
+      If (This\id And IsGadget(This\id)) {
+        SetGadgetState(This\id, checked)
+      }
+    }
+
+    Public Method Free() {
+      If (This\id) {
+        UI::UnregisterGadget(This\id)
+        Super::Free()
+      }
+    }
+  }
+
+}

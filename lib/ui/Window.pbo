@@ -1,0 +1,106 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - Window.pbo
+; Window component encapsulating PureBasic Windows
+; ============================================================================
+
+XIncludeFile "Component.pbo"
+XIncludeFile "Gadget.pbo"
+
+Namespace UI {
+
+  Class Window Extends Component {
+    Protected title.s
+    Protected flags.i
+    Protected parentID.i
+
+    Public Method Init(title_p.s, x_p.i = #PB_Ignore, y_p.i = #PB_Ignore, w_p.i = 640, h_p.i = 480, flags_p.i = #PB_Window_SystemMenu | #PB_Window_ScreenCentered | #PB_Window_SizeGadget | #PB_Window_MinimizeGadget | #PB_Window_MaximizeGadget, parent_p.i = 0) {
+      This\title = title_p
+      This\flags = flags_p
+      This\parentID = parent_p
+      This\id = OpenWindow(#PB_Any, x_p, y_p, w_p, h_p, title_p, flags_p, parent_p)
+      If (This\id) {
+        This\x = WindowX(This\id)
+        This\y = WindowY(This\id)
+        This\width = WindowWidth(This\id)
+        This\height = WindowHeight(This\id)
+        This\isVisible = #True
+        This\isEnabled = #True
+      }
+    }
+
+    Public Method SetTitle(t.s) {
+      This\title = t
+      If (This\id And IsWindow(This\id)) {
+        SetWindowTitle(This\id, t)
+      }
+    }
+
+    Public Method.s GetTitle() {
+      If (This\id And IsWindow(This\id)) {
+        ProcedureReturn GetWindowTitle(This\id)
+      }
+      ProcedureReturn This\title
+    }
+
+    Public Method SetPosition(nx.i, ny.i, nw.i, nh.i) {
+      This\x = nx : This\y = ny : This\width = nw : This\height = nh
+      If (This\id And IsWindow(This\id)) {
+        ResizeWindow(This\id, nx, ny, nw, nh)
+      }
+    }
+
+    Public Method SetVisible(v.b) {
+      This\isVisible = v
+      If (This\id And IsWindow(This\id)) {
+        HideWindow(This\id, 1 - v)
+      }
+    }
+
+    Public Method SetEnabled(e.b) {
+      This\isEnabled = e
+      If (This\id And IsWindow(This\id)) {
+        DisableWindow(This\id, 1 - e)
+      }
+    }
+
+    Public Method Close() {
+      If (This\id And IsWindow(This\id)) {
+        CloseWindow(This\id)
+        This\id = 0
+      }
+    }
+
+    Public Method Free() {
+      This\Close()
+    }
+
+    ; Virtual Event Handlers (Can be overridden by child classes)
+    Public Method.b OnClose() {
+      ; Return #True to allow window closing, #False to prevent
+      ProcedureReturn #True
+    }
+
+    Public Method OnResize(newW.i, newH.i) {
+      This\width = newW
+      This\height = newH
+    }
+
+    Public Method OnMove(newX.i, newY.i) {
+      This\x = newX
+      This\y = newY
+    }
+
+    Public Method OnMinimize() {
+    }
+
+    Public Method OnMaximize() {
+    }
+
+    Public Method OnRestore() {
+    }
+
+    Public Method OnChildEvent(*child.Gadget, eventType.i) {
+    }
+  }
+
+}

@@ -1,0 +1,22 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - UI.pbo (Master Header)
+; Include this file to access the entire OOP UI subsystem
+; ============================================================================
+
+XIncludeFile "Component.pbo"
+XIncludeFile "Gadget.pbo"
+XIncludeFile "Window.pbo"
+XIncludeFile "Application.pbo"
+XIncludeFile "CustomGadget.pbo"
+
+; Standard Controls
+XIncludeFile "controls/Button.pbo"
+XIncludeFile "controls/TextBox.pbo"
+XIncludeFile "controls/Label.pbo"
+XIncludeFile "controls/CheckBox.pbo"
+XIncludeFile "controls/ProgressBar.pbo"
+XIncludeFile "controls/Slider.pbo"
+XIncludeFile "controls/ComboBox.pbo"
+
+; Custom Controls
+XIncludeFile "controls/ToggleSwitch.pbo"

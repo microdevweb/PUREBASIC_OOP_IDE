@@ -1,0 +1,17 @@
+﻿@Title Migrationsanleitung
+
+@Section Einführung
+  PureBasic ist eine moderne Programmiersprache, die sich schnell weiterentwickelt, um technologischen
+  Veränderungen zu folgen und dem Programmierer stets einen aktuellen Befehlssatz zur Verfügung zu
+  stellen. Dies erfordert mitunter Änderungen oder eine Neugestaltung von Teilen der Sprache.
+  Obwohl wir versuchen, solche grundlegenden Änderungen so gering wie möglich zu halten, können sie
+  vorkommen. Dieser Migrationsleitfaden hilft Ihnen dabei, Ihren Quellcode von einer Version auf eine
+  andere zu aktualisieren.
+
+@Section Migrationsanweisungen
+  @ReferenceLink "migration_630_640" "Migration von 6.30 nach 6.40" @LineBreak
+  @ReferenceLink "migration_560_572" "Migration von 5.60 nach 5.72" @LineBreak
+  @ReferenceLink "migration_550_560" "Migration von 5.50 nach 5.60" @LineBreak
+  @ReferenceLink "migration_540_550" "Migration von 5.40 nach 5.50" @LineBreak
+  @ReferenceLink "migration_530_540" "Migration von 5.30 nach 5.40" @LineBreak
+  @ReferenceLink "migration_520_540" "Migration von 5.20 nach 5.40" @LineBreak

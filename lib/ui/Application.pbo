@@ -1,0 +1,135 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - Application.pbo
+; Application Manager & Central Event Dispatcher
+; ============================================================================
+
+XIncludeFile "Window.pbo"
+XIncludeFile "Gadget.pbo"
+
+Global NewMap UI_GadgetMap.i()
+Global NewMap UI_WindowMap.i()
+
+Macro UI_RegisterGadget(id_p, g_p)
+  If (id_p >= 0 And g_p)
+    UI_GadgetMap(Str(id_p)) = g_p
+  EndIf
+EndMacro
+
+Macro UI_UnregisterGadget(id_p)
+  If (FindMapElement(UI_GadgetMap(), Str(id_p)))
+    DeleteMapElement(UI_GadgetMap(), Str(id_p))
+  EndIf
+EndMacro
+
+Macro UI_RegisterWindow(id_p, w_p)
+  If (id_p >= 0 And w_p)
+    UI_WindowMap(Str(id_p)) = w_p
+  EndIf
+EndMacro
+
+Macro UI_UnregisterWindow(id_p)
+  If (FindMapElement(UI_WindowMap(), Str(id_p)))
+    DeleteMapElement(UI_WindowMap(), Str(id_p))
+  EndIf
+EndMacro
+
+Namespace UI {
+
+  Class Application {
+    Protected isRunning.b
+
+    Public Method Init() {
+      This\isRunning = #False
+    }
+
+    Public Method Run() {
+      This\isRunning = #True
+      Protected ev.i, evGadget.i, evWin.i, evType.i
+
+      While (This\isRunning) {
+        ev = WaitWindowEvent()
+        evWin = EventWindow()
+        evType = EventType()
+
+        Select (ev) {
+          Case #PB_Event_Gadget:
+            evGadget = EventGadget()
+            If (FindMapElement(UI_GadgetMap(), Str(evGadget))) {
+              Protected *targetGadget.Gadget = UI_GadgetMap()
+              If (*targetGadget) {
+                Select (evType) {
+                  Case #PB_EventType_LeftClick:   *targetGadget\OnClick()
+                  Case #PB_EventType_Change:      *targetGadget\OnChange()
+                  Case #PB_EventType_Focus:       *targetGadget\OnFocus()
+                  Case #PB_EventType_LostFocus:   *targetGadget\OnLostFocus()
+                  Case #PB_EventType_RightClick:  *targetGadget\OnRightClick()
+                  Default:                        *targetGadget\OnCustomEvent(evType)
+                }
+              }
+            }
+
+          Case #PB_Event_CloseWindow:
+            If (FindMapElement(UI_WindowMap(), Str(evWin))) {
+              Protected *targetWin.Window = UI_WindowMap()
+              If (*targetWin) {
+                If (*targetWin\OnClose()) {
+                  *targetWin\Close()
+                  UI_UnregisterWindow(evWin)
+                  If (MapSize(UI_WindowMap()) = 0) {
+                    This\isRunning = #False
+                  }
+                }
+              }
+            } Else {
+              CloseWindow(evWin)
+            }
+
+          Case #PB_Event_SizeWindow:
+            If (FindMapElement(UI_WindowMap(), Str(evWin))) {
+              Protected *targetWinSize.Window = UI_WindowMap()
+              If (*targetWinSize) {
+                *targetWinSize\OnResize(WindowWidth(evWin), WindowHeight(evWin))
+              }
+            }
+
+          Case #PB_Event_MoveWindow:
+            If (FindMapElement(UI_WindowMap(), Str(evWin))) {
+              Protected *targetWinMove.Window = UI_WindowMap()
+              If (*targetWinMove) {
+                *targetWinMove\OnMove(WindowX(evWin), WindowY(evWin))
+              }
+            }
+
+          Case #PB_Event_MinimizeWindow:
+            If (FindMapElement(UI_WindowMap(), Str(evWin))) {
+              Protected *targetWinMin.Window = UI_WindowMap()
+              If (*targetWinMin) {
+                *targetWinMin\OnMinimize()
+              }
+            }
+
+          Case #PB_Event_MaximizeWindow:
+            If (FindMapElement(UI_WindowMap(), Str(evWin))) {
+              Protected *targetWinMax.Window = UI_WindowMap()
+              If (*targetWinMax) {
+                *targetWinMax\OnMaximize()
+              }
+            }
+
+          Case #PB_Event_RestoreWindow:
+            If (FindMapElement(UI_WindowMap(), Str(evWin))) {
+              Protected *targetWinRest.Window = UI_WindowMap()
+              If (*targetWinRest) {
+                *targetWinRest\OnRestore()
+              }
+            }
+        }
+      }
+    }
+
+    Public Method Quit() {
+      This\isRunning = #False
+    }
+  }
+
+}

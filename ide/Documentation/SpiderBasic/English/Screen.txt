@@ -1,0 +1,465 @@
+﻿;
+;     Screen library documentation
+;
+;      (c) 2023 - Fantaisie Software
+;
+
+@Library Screen
+
+@Overview
+
+A screen is a surface used to display game accelerated content like @LibraryLink "Sprite" "sprites".
+ A screen can be created either in a regular @LibraryLink "window" "window",
+or using the whole display (fullscreen mode).
+
+@CommandList
+
+@ExampleFile All Screen.sb
+@ExampleFile All Shaders.sb
+@ExampleFile All WindowedScreen.sb
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function AddScreenShader(Shader)
+
+@Description
+  Adds a realtime shader to the screen. If the same shader is already set,
+  it will replaced. Any number of shaders can be stacked on the screen. The shader effect can be controlled by @@ScreenShaderAttribute.
+
+@Parameter "Shader"
+  The shader to apply. It can be one of the following value:
+  
+@FixedFont
+  @#PB_Shader_Blur      : Add a blur effect to the screen.
+  @#PB_Shader_Noise     : Add a noise effect to the screen.
+  @#PB_Shader_Pixelate  : Add a pixelate effect to the screen.
+  @#PB_Shader_Bevel     : Add a bevel effect to the screen (lighter/darker edges).
+  @#PB_Shader_BulgePinch: Add a bulge or pinch effect to the screen.
+  @#PB_Shader_Adjustment: Allow to adjust color components like red, green, blue channels, alpha value and more.
+  @#PB_Shader_Reflection: Add a screen reflection effect.
+@EndFixedFont
+
+@NoReturnValue
+
+@Example
+@Code
+  OpenScreen(800, 600, 32, "Shader Test")
+  SetFrameRate(60)
+
+  Procedure RenderFrame()
+    Static Time.d
+    
+    DisplaySprite(0, 0, 0)
+    
+    ; Animate the reflection wave
+    Time + 0.05
+    ScreenShaderAttribute(#PB_ReflectionShader_Time, Time)
+  
+    FlipBuffers() ; continue the rendering
+  EndProcedure
+
+  LoadSprite(0, "Data/Mountain.jpg")
+  
+  AddScreenShader(#PB_Shader_Reflection)
+  ScreenShaderAttribute(#PB_ReflectionShader_Boundary, 0.80)
+      
+  BindEvent(#PB_Event_RenderFrame, @RenderFrame())
+  FlipBuffers() ; start the rendering
+@EndCode
+
+@SeeAlso
+  @@RemoveScreenShader, @@ScreenShaderAttribute
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function RemoveScreenShader(Shader)
+
+@Description
+  Removes the realtime shader from the screen previously added with @@AddScreenShader. If the shader wasn't added
+  on the screen, this command has no effect.
+
+@Parameter "Shader"
+  The shader to remove. It can be one of the following value:
+  
+@FixedFont
+  @#PB_Shader_Blur      
+  @#PB_Shader_Noise     
+  @#PB_Shader_Pixelate  
+  @#PB_Shader_Bevel     
+  @#PB_Shader_BulgePinch
+  @#PB_Shader_Adjustment
+  @#PB_Shader_Reflection
+@EndFixedFont
+
+@NoReturnValue
+
+@SeeAlso
+  @@AddScreenShader, @@ScreenShaderAttribute
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function ScreenShaderAttribute(ShaderAttribute, Value.f)
+
+@Description
+  Change the realtime shader attributes. If the shader isn't added
+  on the screen, this command has no effect.
+
+@Parameter "ShaderAttribute"
+  The shader attribute to change. It can be one of the following value:
+  
+@FixedFont
+  @#PB_BlurShader_Intensity: The blur shader intensity from 0 (no blur) to 1000 (very blurred)
+  @#PB_BlurShader_Quality  : The blur quality from 0 (low quality) to 100 (high quality). Better quality means slower perfomance.
+
+  @#PB_NoiseShader_Seed     : The random seed of the noise shader. Can be any number.
+  @#PB_NoiseShader_Intensity: The intensity of the noise shader, from 0 (no noise) to 1 (full noise).
+
+  @#PB_PixelateShader_SizeX: The width (in pixels) of the pixelate shader block.
+  @#PB_PixelateShader_SizeY: The height (in pixels) of the pixelate shader block.
+
+  @#PB_BevelShader_Thickness  : The thickness (in pixel) of the bevel borders
+  @#PB_BevelShader_Rotation   : The rotation of the bevel light, in degree.
+  @#PB_BevelShader_LightColor : The light color, including alpha. @@RGBA can be used to get a valid color value.
+  @#PB_BevelShader_ShadowColor: The shadow color, including alpha. @@RGBA can be used to get a valid color value.
+
+  @#PB_BulgePinchShader_Strength: The strengh of the effect between -1 and 1 (-1 is strong pinch, 0 is no effect, 1 is strong bulge)
+  @#PB_BulgePinchShader_CenterX : The X center coordinate of the effect (in pixels)
+  @#PB_BulgePinchShader_CenterY : The Y center coordinate of the effect (in pixels)
+  @#PB_BulgePinchShader_Radius  : The radius of the effect (in pixels)
+
+  @#PB_AdjustmentShader_Alpha     : The alpha value between 0 (transparent) and 1 (opaque).
+  @#PB_AdjustmentShader_Gamma     : The gamma value between 0 and 1.
+  @#PB_AdjustmentShader_Saturation: The saturation value between 0 and 1.
+  @#PB_AdjustmentShader_Contrast  : The contrast value between 0 and 1.
+  @#PB_AdjustmentShader_Brightness: The brightness value between 0 and 1.
+  @#PB_AdjustmentShader_Red       : The red value between 0 and 1.
+  @#PB_AdjustmentShader_Green     : The green value between 0 and 1.
+  @#PB_AdjustmentShader_Blue      : The blue value between 0 and 1.
+  
+  @#PB_ReflectionShader_AlphaStart: The starting alpha value, between 0 and 1 (default 1).
+  @#PB_ReflectionShader_AlphaEnd  : The ending alpha value, between 0 and 1 (default 1).
+  @#PB_ReflectionShader_Boundary  : To define where to start the reflection on the screen, between 0 and 1 (lower value produce a larger reflection).
+  @#PB_ReflectionShader_AmplitudeStart : The starting amplitude value (default 0).
+  @#PB_ReflectionShader_AmplitudeEnd   : The ending amplitude value (default 20).
+  @#PB_ReflectionShader_WaveLengthStart: The starting wave length value (default 30).
+  @#PB_ReflectionShader_WaveLengthEnd  : The ending wave length value (default 100).
+  @#PB_ReflectionShader_Mirror    : Set to @#True to enable the mirror mode (default) or to @#False to disable it.
+  @#PB_ReflectionShader_Time      : The time (in milliseconds) for animating position of waves.
+@EndFixedFont
+
+@NoReturnValue
+
+@SeeAlso
+  @@AddScreenShader, @@RemoveScreenShader
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function ClearScreen(Color)
+
+@Description
+  Clear the whole screen with the specified color. 
+  
+@Parameter "Color"
+  The color to use to clear the screen. @@RGB can be used to get a valid color value.
+  A table with common colors is available @ReferenceLink "colortable" "here".
+
+@NoReturnValue
+
+@Remarks
+  ClearScreen() has to be always called outside a @@StartDrawing : @@StopDrawing block.
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function CloseScreen()
+
+@Description
+  Close the current screen (either windowed or full screen mode). After closing a screen, all the sprites
+  must be reloaded as the screen format has been lost and the video memory released. An application or game
+  can switch from full screen to windowed mode on the fly without any problem.
+      
+@NoParameters
+
+@NoReturnValue
+
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function FlipBuffers()
+
+@Description
+  Flip the back and front buffers of the current screen. The invisible area is now visible and vice versa,
+  which allowss to do a 'double-buffering' effect (flicker free graphical displays).
+  A screen must have been opened with @@OpenScreen or @@OpenWindowedScreen. The way the buffer are flipped 
+  (with or without synchronization) is set by @@OpenScreen or @@OpenWindowedScreen.
+
+@NoParameters
+
+@NoReturnValue
+
+@Remarks
+  FlipBuffers() has to be called outside a @@StartDrawing : ... : @@StopDrawing program block.
+
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result = IsScreenActive()
+
+@Description
+  Checks if the screen still has the main input focus. If not, appropriate actions should be taken
+  such as @@ReleaseMouse, pause the game, stop the sounds etc.
+  
+@NoParameters
+
+@ReturnValue
+  Nonzero if the screen is still active, zero otherwise.
+
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen, @@ReleaseMouse, @@FlipBuffers
+        
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result = ScreenWidth()
+
+@Description
+  Returns the current screen width, previously opened with @@OpenScreen or @@OpenWindowedScreen.
+  
+@NoParameters
+
+@ReturnValue
+  The current screen width, or zero if no screen is opened.
+  
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen, @@ScreenHeight, @@ScreenDepth
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result = ScreenHeight()
+
+@Description
+  Returns the current screen height, previously opened with @@OpenScreen or @@OpenWindowedScreen.
+  
+@NoParameters
+
+@ReturnValue
+  The current screen height, or zero if no screen is opened.
+  
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen, @@ScreenWidth, @@ScreenDepth
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result = ScreenDepth()
+
+@Description
+  Returns the current screen depth, previously opened with @@OpenScreen or @@OpenWindowedScreen.
+  
+@NoParameters
+  
+@ReturnValue
+  The current screen depth, or zero if no screen is opened. Depth is a value between 8 and 32.
+  
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen, @@ScreenWidth, @@ScreenHeight
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function SetFrameRate(FrameRate)
+
+@Description
+  Set the frame rate (in frames per second) for the current screen. This is especially useful
+  for windowed screen mode where there is no refresh rate for the screen. This function
+  sets the maximum number of times per second that the @@FlipBuffers function is called.
+
+@Parameter "FrameRate"
+  The new framerate to set.
+  
+@NoReturnValue
+      
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen, @@FlipBuffers
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result = OpenScreen(Width, Height, Depth, Title$ [, FlipMode [, RefreshRate]])
+
+@Description
+  Opens a new screen according to the specified 'Width', 'Height' and 'Depth'. 
+  @@InitSprite has to be called successfully before using this command. The 
+  opened screen is created with 2 video buffers to allow double 
+  buffering, especially useful for games. The buffers can be manipulated with 
+  the @@FlipBuffers function.
+
+@Parameter "Width, Height"
+  The screen resolution, in pixels. The specified resolution has to be supported
+  or the screen won't be created.
+
+@Parameter "Depth"
+  Ignored.
+
+@Parameter "Title$"
+  Text to be display in the brower title bar.
+
+@OptionalParameter "FlipMode"
+  Ignored.
+
+@OptionalParameter "RefreshRate"
+  Ignored.
+
+@ReturnValue
+  Nonzero if the screen has been successfully opened, zero otherwise.
+
+@Remarks
+  The @LibraryLink "Requester" "Requester" functions cannot be used on screens
+  created with OpenScreen.
+@LineBreak
+@LineBreak  
+  To open a screen area on a regular window, see @@OpenWindowedScreen.
+
+@SeeAlso
+  @@OpenWindowedScreen, @@FlipBuffers, @@ResizeScreen
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result = OpenWindowedScreen(WindowID, x, y, Width, Height [, AutoStretch, RightOffset, BottomOffset [, FlipMode]])
+
+@Description
+  Open a new screen area according to given parameters on the given Window, which must be
+  opened before using @@OpenWindow. @@InitSprite has to be called successfully before using this command.
+  The "windowed screen" is able to use the hardware acceleration the same way than 
+  full-size @@OpenScreen function.
+
+@Parameter "WindowID"
+  The window to use to create the screen. @@WindowID can be used to get a valid window identifier.
+
+@Parameter "x, y"
+  The screen position in the specified window, in pixels.
+
+@Parameter "Width, Height"
+  The screen resolution, in pixels.
+
+@OptionalParameter "AutoStretch"
+  Ignored.
+
+@OptionalParameter "RightOffset, BottomOffset"
+  Ignored.
+
+@OptionalParameter "FlipMode"
+  Ignored.
+  
+@ReturnValue
+  Nonzero if the screen has been successfully opened, zero otherwise.
+
+@Remarks
+  Only one windowed screen can be opened at one time. The screen dimension can't be greater than the window size or artefacts can occurs.
+
+@Example Fixed screen size with gadgets
+@Code
+  OpenWindow(0, 20, 20, 840, 640, "A screen in a window...", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+
+  OpenWindowedScreen(WindowID(0), 20, 20, 800, 600)
+  
+  Procedure RenderFrame()
+    Static x, y
+    
+    ClearScreen(RGB(0, 0, 0))
+    
+    x+1
+    DisplaySprite(0, x, 30)
+    
+    FlipBuffers() ; continue the rendering
+  EndProcedure
+  
+  ; Register the render event so FlipBuffers() will trigger the associated procedure
+  BindEvent(#PB_Event_RenderFrame, @RenderFrame())
+  
+  CreateSprite(0, 64, 64)
+  If StartDrawing(SpriteOutput(0))
+    Circle(32, 32, 25, RGB(255, 0, 0)) ; Red circle
+    StopDrawing()
+  EndIf
+  
+  FlipBuffers() ; trigger the rendering
+@EndCode
+@Image openwindowedscreen.png
+
+@Linebreak
+  For a more detailed example look at @ExampleFile All WindowedScreen.sb
+
+@SeeAlso
+  @@OpenScreen, @@FlipBuffers, @@ResizeScreen
+
+@SupportedOS
+
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function ResizeScreen(Width, Height)
+
+@Description
+  Resizes the screen previously opened with @@OpenScreen or @@OpenWindowedScreen.
+
+@Parameter "Width, Height"
+  The new screen resolution, in pixels.
+
+@NoReturnValue
+
+@Remarks
+  The screen dimension can't be greater than the window size or artefacts can occurs.
+
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function FullScreen(State)
+
+@Description
+  Changes the fullscreen state. The user will be asked to enter or the leave the fullscreen state, it's not
+  an automatic operation.
+
+@Parameter "State"
+  The new screen state, can be one of the following values:
+
+@FixedFont
+  @#True : Enters fullscreen mode.
+  @#False: Leaves fullscreen mode.
+@EndFixedFont
+
+@NoReturnValue
+
+@SeeAlso
+  @@OpenScreen, @@OpenWindowedScreen
+
+@SupportedOS

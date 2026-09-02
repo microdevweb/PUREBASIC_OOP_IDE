@@ -1,0 +1,64 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - Component.pbo
+; Base abstract class for all UI Windows and Gadgets
+; ============================================================================
+
+Namespace UI {
+
+  Abstract Class Component {
+    Protected id.i
+    Protected tag.s
+    Protected x.i
+    Protected y.i
+    Protected width.i
+    Protected height.i
+    Protected isVisible.b
+    Protected isEnabled.b
+    Protected userData.i
+
+    Public Method.i GetID() {
+      ProcedureReturn This\id
+    }
+
+    Public Method.s GetTag() {
+      ProcedureReturn This\tag
+    }
+
+    Public Method SetTag(t.s) {
+      This\tag = t
+    }
+
+    Public Method.i GetX() {
+      ProcedureReturn This\x
+    }
+
+    Public Method.i GetY() {
+      ProcedureReturn This\y
+    }
+
+    Public Method.i GetWidth() {
+      ProcedureReturn This\width
+    }
+
+    Public Method.i GetHeight() {
+      ProcedureReturn This\height
+    }
+
+    Public Method.b IsVisible() {
+      ProcedureReturn This\isVisible
+    }
+
+    Public Method.b IsEnabled() {
+      ProcedureReturn This\isEnabled
+    }
+
+    Public Method.i GetUserData() {
+      ProcedureReturn This\userData
+    }
+
+    Public Method SetUserData(val.i) {
+      This\userData = val
+    }
+  }
+
+}

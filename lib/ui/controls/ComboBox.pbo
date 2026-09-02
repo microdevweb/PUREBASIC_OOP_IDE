@@ -1,0 +1,63 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - ComboBox.pbo
+; Standard ComboBox / Dropdown wrapper
+; ============================================================================
+
+XIncludeFile "../Gadget.pbo"
+XIncludeFile "../Application.pbo"
+
+Namespace UI {
+
+  Class ComboBox Extends Gadget {
+
+    Public Method Init(x_p.i, y_p.i, w_p.i = 150, h_p.i = 25, flags_p.i = 0) {
+      This\x = x_p : This\y = y_p : This\width = w_p : This\height = h_p
+      This\isVisible = #True : This\isEnabled = #True
+      This\id = ComboBoxGadget(#PB_Any, x_p, y_p, w_p, h_p, flags_p)
+      If (This\id) {
+        UI::RegisterGadget(This\id, This)
+      }
+    }
+
+    Public Method AddItem(text.s) {
+      If (This\id And IsGadget(This\id)) {
+        AddGadgetItem(This\id, -1, text)
+      }
+    }
+
+    Public Method.i GetSelectedIndex() {
+      If (This\id And IsGadget(This\id)) {
+        ProcedureReturn GetGadgetState(This\id)
+      }
+      ProcedureReturn -1
+    }
+
+    Public Method SetSelectedIndex(idx.i) {
+      If (This\id And IsGadget(This\id)) {
+        SetGadgetState(This\id, idx)
+      }
+    }
+
+    Public Method.s GetSelectedItem() {
+      Protected idx.i = This\GetSelectedIndex()
+      If (idx >= 0 And This\id And IsGadget(This\id)) {
+        ProcedureReturn GetGadgetItemText(This\id, idx)
+      }
+      ProcedureReturn ""
+    }
+
+    Public Method Clear() {
+      If (This\id And IsGadget(This\id)) {
+        ClearGadgetItems(This\id)
+      }
+    }
+
+    Public Method Free() {
+      If (This\id) {
+        UI::UnregisterGadget(This\id)
+        Super::Free()
+      }
+    }
+  }
+
+}

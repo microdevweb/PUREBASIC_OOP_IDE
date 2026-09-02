@@ -1,0 +1,46 @@
+﻿; ============================================================================
+; Exemple 04 : Double Syntaxe Moderne Style C/C# avec Accolades { }
+; ============================================================================
+
+Namespace Core::Demo {
+
+  Class Person {
+    Protected name.s
+    Protected age.i
+
+    Public Method Init(name_p.s, age_p.i) {
+      This\name = name_p
+      This\age = age_p
+    }
+
+    Public Method Saluer() {
+      If (This\age >= 18) {
+        PrintN("Bonjour, je suis " + This\name + " (Majeur, " + Str(This\age) + " ans).")
+      } Else {
+        PrintN("Salut, je suis " + This\name + " (Mineur, " + Str(This\age) + " ans).")
+      }
+    }
+  }
+
+}
+
+Procedure TesterSyntaxe() {
+  Using Core::Demo
+  
+  OpenConsole()
+  PrintN("=== Demonstration PureBasic OOP : Syntaxe C-Style ({ }) ===")
+  PrintN("")
+
+  Define *p1.Person = New Person("Alice", 28)
+  Define *p2.Person = New Person("Bob", 15)
+
+  *p1\Saluer()
+  *p2\Saluer()
+
+  PrintN("")
+  PrintN("Appuyez sur Entree pour quitter...")
+  Input()
+  CloseConsole()
+}
+
+TesterSyntaxe()

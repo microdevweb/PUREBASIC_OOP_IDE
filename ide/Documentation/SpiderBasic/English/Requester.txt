@@ -1,0 +1,205 @@
+﻿;
+;     Requester library documentation
+;
+;      (c) 2014 - Fantaisie Software
+;
+
+@Library Requester
+
+@Overview
+
+Computer users are well used to requesters as almost any graphical application use
+at least one of them. They are very handy as some basic tasks (like opening a file) are 
+all performed through standard windows called 'requesters'.
+
+@CommandList
+
+@ExampleFile All Requester.sb
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Text$ = InputRequester(Message$, DefaultText$)
+
+@Description
+  Opens a blocking input requester to enter some text. 
+  
+@Parameter "Message$"
+  Message displayed before the input field.
+
+@Parameter "DefaultText$"
+  Default text in the input field.
+
+@ReturnValue
+  Returns the text in the input field, or an empty string if the requester has been closed without hitting the "OK" button.
+
+@Example
+@Code
+  Input$ = InputRequester("Please make your input:", "I'm the default input.")
+
+  If Input$ > ""
+    a$ = "You entered in the requester:" + Chr(10)  ; Chr(10) only needed
+    a$ + Input$                                                  ; for line-feed
+  Else  
+    a$ = "The requester was canceled or there was nothing entered."
+  EndIf
+  Debug a$
+@EndCode
+@LineBreak
+@Image inputrequester.png
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result = MessageRequester(Text$ [, Flags])
+
+@Description
+  Opens a blocking requester to display some information. The program execution 
+  is totally stopped until the user close the requester.
+
+@Parameter "Text$"
+  The text displayed in the requester window.
+
+@OptionalParameter "Flags"
+  It can be one of the following value:
+@FixedFont
+  @#PB_MessageRequester_Ok          : to have the 'ok' only button (default)
+  @#PB_MessageRequester_YesNo       : to have 'yes' or 'no' buttons
+@EndFixedFont
+   
+
+@ReturnValue
+  It can be one of the following constants:
+@FixedFont
+  @#PB_MessageRequester_Yes    : the 'yes' or 'ok' button was pressed
+  @#PB_MessageRequester_No     : the 'no' button was pressed
+@EndFixedFont
+
+@Example Simple MessageRequester  (usually for information purposes only)
+@Code
+  MessageRequester("Just a short information text.")
+@EndCode
+
+@Example MessageRequester with Yes / No buttons  (usually to question)
+@Code
+  Result = MessageRequester("Please make your input:", #PB_MessageRequester_YesNo)
+  If Result = #PB_MessageRequester_Yes    ; pressed Yes button
+    Debug "Yes"
+  Else                                    ; pressed No button
+    Debug "No"
+  EndIf
+@EndCode
+@LineBreak
+@Image messagerequester.png
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Filename$ = NextSelectedFilename()
+
+@Description
+  After @@OpenFileRequester with #PB_Requester_MultiSelection, it returns the next selected
+  file (if any).
+
+@NoParameters
+
+@ReturnValue
+  A filename, or an empty string if there are no more selected filenames.
+
+@Example
+@Code
+  Procedure ButtonEvent()
+    Filename$ = OpenFileRequester("", #PB_Requester_MultiSelection)
+    
+    While Filename$ 
+      Debug Filename$ 
+      Filename$ = NextSelectedFilename() 
+    Wend 
+  EndProcedure
+    
+  OpenWindow(0, 100, 100, 200, 55, "File")
+  ButtonGadget(0, 10, 10, 170, 25, "Open local file(s)...")
+  BindGadgetEvent(0, @ButtonEvent())
+@EndCode
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Filename$ = OpenFileRequester(Pattern$ [, Flags])
+
+@Description
+  Opens the standard requester for the user to choose one or several local files.
+  For security reason, the requester can be opened only from an event callback 
+  triggered by a real user action (ie: when the user click on a gadget).
+  This commands needs to be put in an event procedure, like in the example below.
+
+@Parameter "Pattern$"
+  A standard filter which allow to display only the files which 
+  end with such or such extension. It has to be in the MIME form : "image/*",
+  "audio/*" etc. A list of most common MIME types can be found here: @InternetLink "http://www.freeformatter.com/mime-types-list.html" "http:://www.freeformatter.com".
+  
+@OptionalParameter "Flags"
+  It can be a combination of one of the following values:
+@FixedFont
+  @#PB_Requester_MultiSelection: Enable the multiselection (see @@NextSelectedFilename).
+@EndFixedFont
+
+@NoReturnValue
+
+@Example Single file selection
+@Code
+  Procedure ButtonEvent()
+    Filename$ = OpenFileRequester("")
+    Debug Filename$
+  EndProcedure
+    
+  OpenWindow(0, 100, 100, 200, 55, "File")
+  ButtonGadget(0, 10, 10, 170, 25, "Open local file...")
+  BindGadgetEvent(0, @ButtonEvent())
+@EndCode
+
+@Example Multi files selection
+@Code
+  Procedure ButtonEvent()
+    Filename$ = OpenFileRequester("", #PB_Requester_MultiSelection)
+    
+    While Filename$ 
+      Debug Filename$ 
+      Filename$ = NextSelectedFilename() 
+    Wend 
+  EndProcedure
+    
+  OpenWindow(0, 100, 100, 200, 55, "File")
+  ButtonGadget(0, 10, 10, 170, 25, "Open local file(s)...")
+  BindGadgetEvent(0, @ButtonEvent())
+@EndCode
+
+@Example Selecting an image and display it
+@Code
+  Procedure ButtonEvent()
+    Filename$ = OpenFileRequester("image/*")
+    If Filename$
+      Image = LoadImage(#PB_Any, Filename$, #PB_LocalFile) ; when using #PB_LocalFile, all files selected with OpenFileRequester() are directly available
+      If Image
+        OpenWindow(#PB_Any, x, y, 300, 300, Filename$, #PB_Window_TitleBar | #PB_Window_SizeGadget)
+          ImageGadget(#PB_Any, 0, 0, ImageWidth(Image), ImageHeight(Image), ImageID(Image))
+      EndIf
+    EndIf
+  EndProcedure
+
+  OpenWindow(0, 100, 100, 200, 45, "Image viewer", #PB_Window_TitleBar)
+  ButtonGadget(0, 10, 10, 180, 25, "Open local image...")
+  BindGadgetEvent(0, @ButtonEvent())
+@EndCode
+
+@LineBreak
+@Image openfilerequester.png
+
+@SeeAlso
+  @@NextSelectedFilename
+
+@SupportedOS

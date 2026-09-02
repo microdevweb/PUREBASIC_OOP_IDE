@@ -1,0 +1,1376 @@
+﻿;
+;     Cipher library documentation
+;
+;      (c) 2025 - Fantaisie Software
+;
+
+@Library Cipher
+
+@Overview
+  Die 'Cipher' ("Verschlüsselungs"-) Bibliothek ist ein Set an Funktionen, die nützlich für
+  das Kodieren sowie Ver- und Entschlüsseln von Daten sind. Zum Beispiel ist SHA-2 eine
+  sehr populäre "Fingerabdruck" Routine, welche wegen ihres hohen Schutzes gegen Attacken
+  auf vielen Gebieten zum Einsatz kommt.
+
+@CommandList
+
+@ExampleFile All Cipher.pb
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function AddCipherBuffer(#Cipher, *Eingabe, *Ausgabe, Größe)
+
+@Description
+  Fügt neue Daten zur mit @@StartAESCipher gestarteten Verschlüsselung hinzu, und
+  kopiert die verschlüsselten Daten in den Ausgabepuffer.
+
+@Parameter "#Cipher"
+  Die Verschlüsselung, zu welcher die Daten hinzugefügt werden sollen.
+
+@Parameter "*Eingabe"
+  Der Eingabepuffer.
+
+@Parameter "*Ausgabe"
+  Der Ausgabepuffer.
+
+@Parameter "Größe"
+  Die Größe der zu verschlüsselnden Daten. Dies ist die Anzahl an Bytes, welche vom
+  Eingabepuffer gelesen und auch in den Ausgabepuffer geschrieben werden.
+
+@NoReturnValue
+
+@SeeAlso
+  @@StartAESCipher, @@FinishCipher, @@AESDecoder, @@AESEncoder
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = AESEncoder(*Eingabe, *Ausgabe, Größe, *Schlüssel, Bits, *InitialisierungsVektor [, Modus])
+
+@Description
+  Kodiert den angegebenen Eingabepuffer mit Hilfe des AES-Algorithmus in den Ausgabepuffer.
+
+@Parameter "*Eingabe"
+  Der Eingabepuffer mit den reinen Daten.
+
+@Parameter "*Ausgabe"
+  Der Ausgabepuffer, welcher die kodierten Daten empfängt. Dieser muss ein
+  anderer als der Eingabepuffer sein.
+
+@Parameter "Größe"
+  Die Anzahl an zu kodierenden Bytes. Dies müssen mindestens 16 Bytes sein.
+  Um etwas Kleineres zu verschlüsseln, müssen Leerzeichen vor dem Kodieren hinzugefügt werden.
+
+@Parameter "*Schlüssel"
+  Ein Puffer, welcher den Schlüssel für das Kodieren enthält.
+  Seine Größe hängt vom Parameter 'Bits' ab: 16 Bytes für 128 Bit-Verschlüsselung, 24 Bytes
+  für 192 Bit und 32 Bytes für 256 Bit.
+  @@DeriveCipherKey kann verwendet werden, um diesen Schlüssel aus einem Passwort zu erstellen.
+
+@Parameter "Bits"
+  Die Größe des für die Verschlüsselung verwendeten Schlüssels. Gültige Werte sind
+  128, 192 und 256.
+
+@Parameter "*InitialisierungsVektor"
+  Der InitialisierungsVektor ist ein zufälliger Datenblock, 
+  welcher für das Initialisieren der Verschlüsselung verwendet wird, um ein Knacken beim Dekodieren
+  zu verhindern (wird nur bei Verwendung des @#PB_Cipher_CBC Modus benötigt).
+  Der InitialisierungsVektor ist immer 16 Bytes lang.
+
+@OptionalParameter "Modus"
+  Dies kann einer der folgenden Werte sein:
+@FixedFont  
+  @#PB_Cipher_CBC: Standard-Modus der Kodierung (Cipher Block Chaining). Benötigt einen '*InitialisierungsVektor'.
+                  Empfohlen als sicherer gegenüber dem ECB-Modus.
+  @#PB_Cipher_ECB: Alternativer Modus (Electronic CodeBook). Verwendet weder einen Zufallswert noch Verkettung
+                  (jeder Block wird unabhängig voneinander kodiert), was ihn sehr schwach im Vergleich zu CBC macht,
+                  weshalb er nicht für ernsthafte Verschlüsselung verwendet werden sollte.
+@EndFixedFont
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn die Verschlüsselung erfolgreich war,
+  andernfalls Null.
+
+@Remarks
+  AES ist ein industrieller Verschlüsselungs-Algorithmus und ist gut ausgewogen zwischen Geschwindigkeit
+  und Sicherheit. Hier die (englische) Wikipedia-Einführung über AES:
+  'In cryptography, the Advanced Encryption Standard (AES) is an encryption standard adopted by the U.S. government. 
+  The standard comprises three block ciphers, AES-128, AES-192 and AES-256, adopted from a larger collection originally 
+  published as Rijndael. Each AES cipher has a 128-bit block size, with key sizes of 128, 192 and 256-bit, respectively. 
+  The AES ciphers have been analyzed extensively and are now used worldwide.'
+@LineBreak
+@LineBreak
+  PureBasic verwendet eine RFC-konforme Implementierung von AES.
+  Weitere Informationen sind zu finden in der RFC 3602: @InternetLink "http://www.ietf.org/rfc/rfc3602.txt" "http://www.ietf.org/rfc/rfc3602.txt".
+
+@Example CBC
+@Code
+  ; Verschlüsseln eines Strings
+  ;
+  String$ = "Hello this is a test for AES"
+  
+  StringMemorySize = StringByteLength(String$) + SizeOf(Character) ; Platz für den null-terminierten String mit seiner abschließenden Null
+  *CipheredString = AllocateMemory(StringMemorySize)   
+  *DecipheredString = AllocateMemory(StringMemorySize) 
+  
+  If AESEncoder(@String$, *CipheredString, StringByteLength(String$), ?Key, 128, ?InitializationVector)
+    Debug "Ciphered: "+PeekS(*CipheredString) ; Warning: wird beim ersten Null-Byte angehalten, nur für Demo-Zwecke
+    
+    AESDecoder(*CipheredString, *DecipheredString, StringByteLength(String$), ?Key, 128, ?InitializationVector)
+    Debug "Deciphered: "+PeekS(*DecipheredString)
+  EndIf
+
+  DataSection
+    Key:
+      Data.b $06, $a9, $21, $40, $36, $b8, $a1, $5b, $51, $2e, $03, $d5, $34, $12, $00, $06
+  
+    InitializationVector:
+      Data.b $3d, $af, $ba, $42, $9d, $9e, $b4, $30, $b4, $22, $da, $80, $2c, $9f, $ac, $41
+  EndDataSection
+  
+@EndCode
+
+@Example ECB
+@Code
+  String$ = "Hello this is a test for AES"
+  
+  *CipheredString   = AllocateMemory(StringByteLength(String$) + SizeOf(Character)) ; Platz für den null-terminierten String
+  *DecipheredString = AllocateMemory(StringByteLength(String$) + SizeOf(Character)) ; mit seiner abschließenden Null
+  
+  If AESEncoder(@String$, *CipheredString, MemorySize(*CipheredString), ?Key, 128, 0, #PB_Cipher_ECB)
+    Debug "Ciphered: " + PeekS(*CipheredString)
+    
+    AESDecoder(*CipheredString, *DecipheredString, MemorySize(*DecipheredString), ?Key, 128, 0, #PB_Cipher_ECB)
+    Debug "Deciphered: " + PeekS(*DecipheredString)
+  EndIf
+  
+  DataSection
+    Key:
+    Data.a $06, $a9, $21, $40, $36, $b8, $a1, $5b, $51, $2e, $03, $d5, $34, $12, $00, $06
+  EndDataSection
+@EndCode
+
+@SeeAlso
+  @@AESDecoder, @@StartAESCipher, @@DeriveCipherKey
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = AESDecoder(*Eingabe, *Ausgabe, Größe, *Schlüssel, Bits, *InitialisierungsVektor [, Modus])
+
+@Description
+  Dekodiert den angegebenen Eingabepuffer mit Hilfe des AES-Algorithmus in den Ausgabepuffer.
+
+@Parameter "*Eingabe"
+  Der Eingabepuffer mit den kodierten Daten.
+
+@Parameter "*Ausgabe"
+  Der Ausgabepuffer, welcher die reinen Daten empfängt. Dieser muss ein
+  anderer als der Eingabepuffer sein.
+
+@Parameter "Größe"
+  Die Anzahl an zu dekodierenden Bytes. Dies müssen mindestens 16 Bytes sein.
+  Um etwas Kleineres zu entschlüsseln, müssen Leerzeichen vor dem Dekodieren hinzugefügt werden.
+
+@Parameter "*Schlüssel"
+  Ein Puffer, welcher den Schlüssel für das Dekodieren enthält.
+  Seine Größe hängt vom Parameter 'Bits' ab: 16 Bytes für 128 Bit-Verschlüsselung, 24 Bytes
+  für 192 Bit und 32 Bytes für 256 Bit.
+  @@DeriveCipherKey kann verwendet werden, um diesen Schlüssel aus einem Passwort zu erstellen.
+
+@Parameter "Bits"
+  Die Größe des für die Verschlüsselung verwendeten Schlüssels. Gültige Werte sind
+  128, 192 und 256.
+
+@Parameter "*InitialisierungsVektor"
+  Der InitialisierungsVektor ist ein zufälliger Datenblock, 
+  welcher für das Initialisieren der Verschlüsselung verwendet wird, um ein Knacken beim Dekodieren
+  zu verhindern (wird nur bei Verwendung des @#PB_Cipher_CBC Modus benötigt).
+  Seine Größe hängt vom Parameter 'Bits' ab: 16 Bytes für 128 Bit-Verschlüsselung, 24 Bytes für
+  196 Bit und 32 Bytes für 256 Bit. Die Inhalte diesen Daten-Blocks müssen mit denen übereinstimmen,
+  welche beim @Link "AESEncoder" "Kodieren" der Daten verwendet wurden.
+  
+@OptionalParameter "Modus"
+  Dies kann einer der folgenden Werte sein:
+@FixedFont  
+  @#PB_Cipher_CBC: Standard-Modus der Kodierung (Cipher Block Chaining). Benötigt einen '*InitialisierungsVektor'.
+                  Empfohlen als sicherer gegenüber dem ECB-Modus.
+  @#PB_Cipher_ECB: Alternativer Modus (Electronic CodeBook). Verwendet weder einen Zufallswert noch Verkettung
+                  (jeder Block wird unabhängig voneinander kodiert), was ihn sehr schwach im Vergleich zu CBC macht,
+                  weshalb er nicht für ernsthafte Verschlüsselung verwendet werden sollte.
+@EndFixedFont
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn die Entschlüsselung erfolgreich war,
+  andernfalls Null.
+
+@Remarks
+  Für weitere Informationen über AES und Quellcode-Beispiele siehe @@AESEncoder.
+
+@SeeAlso
+  @@AESEncoder, @@StartAESCipher, @@DeriveCipherKey
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis$ = CreatePasswordHash(Passwort$ [, AufwandsFaktor])
+
+@Description
+  Erstellt einen Hash-Digest eines Passworts zur Speicherung und späteren Überprüfung eines Passworts.
+  Es ist nicht möglich, das eingegebene Passwort aus dem Hash-Wert wiederherzustellen, aber Passwörter
+  können später mit @@VerifyPasswordHash überprüft werden, um zu sehen, ob sie mit dem Hash übereinstimmen.
+
+@Parameter "Passwort$"
+  Das zu hashende Passwort.
+
+@OptionalParameter "AufwandsFaktor"
+  Ein Parameter zur Beeinflussung des Arbeitsaufwands, den die Hash-Funktion zum Erstellen oder Überprüfen
+  eines Passwort-Hashs erfordern sollte.
+  Größere Werte für diesen Faktor machen den Versuch, ein Passwort mittels 'Brute force' zu knacken,
+  aufwändiger, machen aber auch die Erstellung und Überprüfung des Passworts für die Anwendung selbst aufwändiger.
+@LineBreak
+@LineBreak
+  Zulässige Werte sind 4 bis 31. Durch Erhöhen des 'AufwandsFaktors' um eins verdoppelt sich der Arbeitsaufwand,
+  den die Funktion zum Erstellen oder späteren Überprüfen eines Kennworts aufwendet. Der Standardwert ist 10.
+
+@ReturnValue
+  Gibt den Hash des Passworts zurück.
+
+@Remarks
+  Der zurückgegebene Passwort-Hash enthält eine Zufallskomponente (einen Salt-Wert), um sicherzustellen, dass
+  mehrere Hashes, die mit demselben eingegebenen Passwort erstellt wurden, nicht denselben Hash-Wert erzeugen.
+  Es ist daher nicht möglich, das Ergebnis dieser Funktion direkt zu vergleichen, um ein Passwort zu überprüfen.
+  Stattdessen muss die Funktion @@VerifyPasswordHash aufgerufen werden, um ein Passwort zu überprüfen.
+@LineBreak
+@LineBreak
+  Diese Funktion implementiert den bcrypt-Passwort-Hashing-Algorithmus.
+  
+@Example
+@Code
+  ; Erstellt einen Hash-Digest zur sicheren Speicherung
+  Hash$ = CreatePasswordHash("secret")
+
+  ; Passwörter anhand des Hashs prüfen  
+  Debug VerifyPasswordHash("secret", Hash$)      ; korrekt
+  Debug VerifyPasswordHash("othersecret", Hash$) ; inkorrekt
+@EndCode
+
+@SeeAlso
+  @@VerifyPasswordHash
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = VerifyPasswordHash(Passwort$, Hash$)
+
+@Description
+  Überprüft, ob das angegebene Passwort mit dem Hash-Wert übereinstimmt, der zuvor mit @@CreatePasswordHash
+  erstellt wurde.
+
+@Parameter "Passwort$"
+  Das zu überprüfende Passwort.
+
+@Parameter "Hash$"
+  Das Ergebnis eines vorherigen Aufrufs von @@CreatePasswordHash.
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn das Passwort mit dem Hash-Wert übereinstimmt,
+  oder Null, wenn es nicht übereinstimmt oder der Hash-Wert ungültig war.
+
+@Example
+  Siehe @@CreatePasswordHash für ein Beispiel.
+
+@SeeAlso
+  @@CreatePasswordHash
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis$ = DESFingerprint(Passwort$, Schlüssel$)
+
+@Description
+@Deprecated
+  Gibt eine DES-verschlüsselte Version des angegebenen Passworts zurück.
+  @LineBreak
+  @LineBreak
+  Dieser Befehl ist veraltet, da er für moderne Anwendungen nicht mehr sicher genug ist.
+  Verwenden Sie stattdessen die Funktion @@CreatePasswordHash.
+
+@SeeAlso
+  @@CreatePasswordHash
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = DeriveCipherKey(Passwort$, Salt$, Iterationen, *Key, KeyBits, Plugin [, PluginBits])
+
+@Description
+  Erstellt aus einem Eingabekennwort einen "Chiffrierschlüssel" (englisch "cipher key") mit der angegebenen
+  Anzahl von Bits zur Verwendung in anderen Verschlüsselungsfunktionen wie Verschlüsselung oder Entschlüsselung.
+  Diese Funktion implementiert den PBKDF2-Schlüsselableitungsalgorithmus.
+
+@Parameter "Passwort$"
+  Das Passwort für die Schlüsselgenerierung.
+
+@Parameter "Salt$"
+  Eine "Salt"-Zeichenfolge, um das Ergebnis der Funktion eindeutig zu machen, auch wenn dasselbe Passwort
+  verwendet wird. Dies erschwert Brute-Force-Angriffe und verhindert die Offenlegung von Informationen bei
+  übereinstimmenden Passwörtern.
+@LineBreak
+@LineBreak
+  Dieser Wert muss nicht geheim sein, sollte jedoch möglichst einmalig sein.
+  
+@Parameter "Iterationen"
+  Die Anzahl der Iterationen der PBKDF2-Schlüsselgenerierungsschleife. Eine größere Zahl erhöht den
+  Zeit-/Berechnungsaufwand für die Berechnung des Schlüssels und erschwert daher Brute-Force-Angriffe.
+  
+@Parameter "*Key"
+  Ein Zeiger auf den Speicherort, der den generierten Schlüssel empfängt. Der Speicherbereich muss mindestens
+  'KeyBits'/8 Byte groß sein.
+
+@Parameter "KeyBits"
+  Die Größe des zu generierenden Schlüssels in Bits.
+  
+@Parameter "Plugin"
+  Das Plugin für die bei der Schlüsselberechnung zu verwendende 'Fingerprint'-Funktion zur Verwendung.
+  Es kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Cipher_MD5  : verwendet den MD5-Algorithmus. @@UseMD5Fingerprint muss zuvor aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA1 : verwendet den SHA1-Algorithmus. @@UseSHA1Fingerprint muss zuvor aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA2 : verwendet den SHA2-Algorithmus. @@UseSHA2Fingerprint muss zuvor aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA3 : verwendet den SHA3-Algorithmus. @@UseSHA3Fingerprint muss zuvor aufgerufen werden, um dieses Plugin zu registrieren.
+@EndFixedFont
+
+@OptionalParameter "PluginBits"
+  Die für die 'Fingerprint'-Funktion zu verwendende Bitanzahl. Es wird nur für die folgenden Plugins unterstützt:
+@FixedFont
+  @#PB_Cipher_SHA2 : kann 224, 256 (Standard), 384 oder 512 sein.
+  @#PB_Cipher_SHA3 : kann 224, 256 (Standard), 384 oder 512 sein.
+@EndFixedFont
+  Die Anzahl der Bits für die 'Fingerprint'-Funktion ist unabhängig von der zu generierenden Schlüsselgröße.
+  Jede Kombination ist erlaubt.
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn der Schlüssel generiert wurde. 
+  Gibt nur Null zurück, wenn die Plugin-Parameter ungültig waren.
+
+@Example
+@Code
+  UseSHA2Fingerprint()
+  *Key = AllocateMemory(32)
+
+  ; Erstellt einen 256-Bit-Schlüssel mithilfe der SHA-512-Hash-Funktion und 500.000 Iterationen
+  DeriveCipherKey("SecretPassword", "NonSecretSalt", 500000, *Key, 256, #PB_Cipher_SHA2, 512)
+
+  ; Zeigt den Schlüssel an
+  ShowMemoryViewer(*Key, 32)
+@EndCode
+
+@SeeAlso
+  @@AESEncoder, @@AESDecoder, @@StartAESCipher
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = StartFingerprint(#Fingerprint, Plugin [, Bits [, HmacKey$ [, HmacKeyFormat]]])
+
+@Description
+  Initialisiert die Berechnung einer Prüfsumme ("Fingerprint") in mehreren Schritten.
+  Anders als die @@Fingerprint Funktion ermöglicht dies die Berechnung der Prüfsumme
+  von großen Daten, ohne die Notwendigkeit, diese komplett in einen zusammenhängenden
+  Speicherpuffer zu laden.
+
+@Parameter "#Fingerprint"
+  Die Nummer ("Fingerprint" = "Fingerabdruck" in Deutsch), mit der bei späteren
+  Aufrufen auf diese Prüfsummen-Berechnung verwiesen wird.
+  @ReferenceLink "purebasic_objects" "#PB_Any" kann verwendet werden, um diese Nummer
+  automatisch zu generieren.
+
+@Parameter "Plugin"
+  Das zu verwendende Plugin. Dies kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Cipher_CRC32: verwendet den CRC32 Algorithmus. @@UseCRC32Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_MD5  : verwendet den MD5 Algorithmus. @@UseMD5Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA1 : verwendet den SHA1 Algorithmus. @@UseSHA1Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA2 : verwendet den SHA2 Algorithmus. @@UseSHA2Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA3 : verwendet den SHA3 Algorithmus. @@UseSHA3Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+@EndFixedFont
+  Das zu verwendende Plugin kann mit dem @#PB_Cipher_HMAC Flag kombiniert werden, um einen HMAC
+  (Hash-basierter Nachrichtenauthentifizierungscode, englisch "hash based message authentication code")
+  anstelle eines regulären 'Fingerprints' zu berechnen. In diesem Fall wird zusätzlich der Parameter
+  "HmacKey$" benötigt.
+  Ein Beispiel für die Verwendung des HMAC-Flags finden Sie unter @@StringFingerprint.
+
+@OptionalParameter "Bits"
+  Die für die Prüfsumme zu verwendende Anzahl Bits. Dies wird nur bei den folgenden Plugins unterstützt:
+@FixedFont
+  @#PB_Cipher_SHA2 : kann 224, 256 (Standard), 384 oder 512 lauten.
+  @#PB_Cipher_SHA3 : kann 224, 256 (Standard), 384 oder 512 lauten.
+@EndFixedFont
+
+@OptionalParameter "HmacKey$"
+  Der geheime Schlüssel, der bei der HMAC-Berechnung verwendet werden soll. Dieser Parameter wird nur
+  verwendet, wenn @#PB_Cipher_HMAC beim 'Plugin'-Parameter hinzugefügt wird.
+  
+@OptionalParameter "HmacKeyFormat"
+  Das für den HMAC-Schlüssel zu verwendende Stringformat. Dies kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Ascii  : kodiert den Schlüssel in ASCII
+  @#PB_UTF8   : kodiert den Schlüssel in UTF-8 (Standard).
+  @#PB_Unicode: kodiert den Schlüssel in Unicode
+@EndFixedFont
+
+@ReturnValue
+  Gibt den #Fingerprint Wert zurück, wenn @#PB_Any für diesen Parameter verwendet wurde.
+
+@Remarks
+  @@AddFingerprintBuffer kann verwendet werden, um Speicherblöcke zur 
+  Berechnung hinzuzufügen, und @@FinishFingerprint zum Abschließen
+  der Berechnung und Lesen der daraus resultierenden Prüfsumme (Hash).
+
+@Example
+@Code
+  UseMD5Fingerprint()
+
+  *Buffer = AllocateMemory(200) ; einen Puffer mit Daten präparieren
+  If *Buffer
+    PokeS(*Buffer, "The quick brown fox jumps over the lazy dog.", -1, #PB_Ascii)
+    Length = MemoryStringLength(*Buffer, #PB_Ascii)
+    
+    If StartFingerprint(0, #PB_Cipher_MD5)          ; die Berechnung starten
+      AddFingerprintBuffer(0, *Buffer, Length/2)          ; Teil 1 berechnen
+      AddFingerprintBuffer(0, *Buffer+Length/2, Length/2) ; Teil 2 berechnen
+      
+      MD5$ = FinishFingerprint(0)                  ; Berechnung abschließen
+      Debug "MD5 checksum = " + MD5$
+      
+      MD5$ = Fingerprint(*Buffer, Length, #PB_Cipher_MD5)  ; mit der Berechnung in 1 Schritt vergleichen
+      Debug "MD5 checksum = " + MD5$      
+    EndIf
+
+    FreeMemory(*Buffer)
+  EndIf
+@EndCode
+
+@SeeAlso
+  @@Fingerprint, @@FileFingerprint, @@StringFingerprint
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function FinishCipher(#Cipher)
+
+@Description
+  Schließt einen zuvor mit @@StartAESCipher gestarteten Verschlüsselungslauf ab.
+
+@Parameter "#Cipher"
+  Die abzuschließende Verschlüsselung.
+
+@NoReturnValue
+
+@Remarks
+  Dieser Befehl sollte zum Abschluss einer Verschlüsselungs-Kalkulation aufgerufen werden,
+  auch wenn die Verschlüsselung '#Cipher' nicht länger benötigt wird, da dieser Befehl alle für die
+  Verschlüsselungs-Kalkulation zugewiesenen Daten freigibt.
+
+@SeeAlso
+  @@StartAESCipher, @@AddCipherBuffer
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = IsCipher(#Cipher)
+
+@Description
+  Überprüft, ob die angegebene #Cipher Nummer eine gültige und korrekt initialisierte Verschlüsselung ist.
+
+@Parameter "#Cipher"
+  Die zu verwendende Verschlüsselung.
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn #Cipher eine gültige Verschhlüsselung ist, andernfalls Null.
+
+@Remarks
+  Diese Funktion ist "kugelsicher" und kann mit jedem Wert benutzt werden. Dies ist der richtige Weg, um
+  sicher zu gehen, dass eine Verschlüsselung fertig zur Benutzung ist.
+
+@SeeAlso
+  @@StartAESCipher
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function AddFingerprintBuffer(#Fingerprint, *Puffer, Größe)
+
+@Description
+  Fügt einen neuen Speicherpuffer zur Berechnung einer Prüfsumme hinzu, welche zuvor mit 
+  @@StartFingerprint gestartet wurde. 
+@LineBreak
+@LineBreak
+  Die am Ende der Berechnung zurückgegebene Prüfsumme wird alle hinzugefügten Puffer mit 
+  einschließen, genauso wie wenn die Prüfsumme all dieser in einem zusammenhängenden 
+  Speicherpuffer berechnet worden wäre.
+
+@Parameter "#FingerPrint"
+  Der Fingerprint ("Fingerabdruck"), zu dem die Daten hinzugefügt werden sollen.
+
+@Parameter "*Puffer"
+  Der Puffer, welcher zum Fingerprint hinzugefügt werden soll.
+
+@Parameter "Größe"
+  Die Anzahl an Bytes, welche zum Fingerprint hinzufügt werden sollen.
+
+@NoReturnValue
+
+@Remarks
+  Siehe @@StartFingerprint für ein Code-Beispiel und weitere Informationen.
+
+@SeeAlso
+  @@StartFingerprint, @@FinishFingerprint
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis$ = FinishFingerprint(#Fingerprint)
+
+@Description
+  Schließt die Berechnung der Prüfsumme ab, welche zuvor mittels @@StartFingerprint
+  gestartet wurde, und gibt die Prüfsumme als einen hexadezimalen String zurück.
+
+@Parameter "#FingerPrint"
+  Der abzuschließende Fingerprint ("Fingerabdruck").
+
+@ReturnValue
+  Gibt die Prüfsumme als einen hexadezimalen String zurück.
+
+@Remarks
+  Dieser Befehl sollte zum Abschluss der Prüfsummen-Berechnung aufgerufen
+  werden, auch wenn die Prüfsumme aktuell nicht mehr benötigt wird, da er auch alle mit der
+  Prüfsummen-Berechnung zusammenhängenden Daten frei gibt.
+@LineBreak
+@LineBreak
+  Siehe @@StartFingerprint für ein Code-Beispiel und weitere Informationen.
+
+@SeeAlso
+  @@StartFingerprint, @@AddFingerprintBuffer
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = IsFingerprint(#Fingerprint)
+
+@Description
+  Überprüft, ob der angegebene '#Fingerprint' eine gültige Prüfsummen-Berechnung ("Fingerprint", 
+  in deutsch "Fingerabdruck") ist, welche mit @@StartFingerprint erstellt wurde.
+
+@Parameter "#FingerPrint"
+  Der zu testende Fingerprint.
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn der Fingerprint gültig ist, andernfalls Null.
+
+@Remarks
+  Diese Funktion ist "kugelsicher" und kann mit jedem Wert verwendet werden.
+
+@SeeAlso
+  @@StartFingerprint
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis$ = FileFingerprint(Dateiname$, Plugin [, Bits [, Offset [, Länge [, HmacKey$ [, HmacKeyFormat]]]]])
+
+@Description
+  Gibt einen Fingerprint ("Fingerabdruck" oder Prüfsumme) für die angegebene Datei zurück. 
+
+@Parameter "Dateiname$"
+  Die Datei, von welcher die Prüfsumme (Fingerprint) berechnet werden soll.
+
+@Parameter "Plugin"
+  Das zu verwendende Plugin. Dies kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Cipher_CRC32: verwendet den CRC32 Algorithmus. @@UseCRC32Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_MD5  : verwendet den MD5 Algorithmus. @@UseMD5Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA1 : verwendet den SHA1 Algorithmus. @@UseSHA1Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA2 : verwendet den SHA2 Algorithmus. @@UseSHA2Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA3 : verwendet den SHA3 Algorithmus. @@UseSHA3Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+@EndFixedFont
+  Das zu verwendende Plugin kann mit dem @#PB_Cipher_HMAC Flag kombiniert werden, um einen HMAC
+  (Hash-basierter Nachrichtenauthentifizierungscode, englisch "hash based message authentication code")
+  anstelle eines regulären 'Fingerprints' zu berechnen. In diesem Fall wird zusätzlich der Parameter
+  "HmacKey$" benötigt.
+  Ein Beispiel für die Verwendung des HMAC-Flags finden Sie unter @@StringFingerprint.
+
+@OptionalParameter "Bits"
+  Die für die Prüfsumme zu verwendende Anzahl Bits. Dies wird nur bei den folgenden Plugins unterstützt:
+@FixedFont
+  @#PB_Cipher_SHA2 : kann 224, 256 (Standard), 384 oder 512 lauten.
+  @#PB_Cipher_SHA3 : kann 224, 256 (Standard), 384 oder 512 lauten.
+@EndFixedFont
+
+@OptionalParameter "Offset"
+  Der Offset (in Bytes) ausgehend vom Beginn der Datei, an dem mit der Prüfsummen-Berechnung begonnen werden soll.
+
+@OptionalParameter "Länge"
+  Die Länge (in Bytes), welche für die Prüfsummen-Berechnung verwendet werden soll.
+
+@OptionalParameter "HmacKey$"
+  Der geheime Schlüssel, der bei der HMAC-Berechnung verwendet werden soll. Dieser Parameter wird nur
+  verwendet, wenn @#PB_Cipher_HMAC beim 'Plugin'-Parameter hinzugefügt wird.
+  
+@OptionalParameter "HmacKeyFormat"
+  Das für den HMAC-Schlüssel zu verwendende Stringformat. Dies kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Ascii  : kodiert den Schlüssel in ASCII
+  @#PB_UTF8   : kodiert den Schlüssel in UTF-8 (Standard).
+  @#PB_Unicode: kodiert den Schlüssel in Unicode
+@EndFixedFont
+  
+@ReturnValue
+  Gibt den Fingerprint (Prüfsumme, "Fingerabdruck" oder "Hash-Code") zurück, wenn die Berechnung erfolgreich war.
+  Wenn die Datei nicht gefunden wurde oder ein Fehler auftrat, wird das Ergebnis ein leerer String sein.
+
+@SeeAlso
+  @@Fingerprint, @@StartFingerprint, @@StringFingerprint
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis$ = Fingerprint(*Puffer, Größe, Plugin [, Bits [, HmacKey$ [, HmacKeyFormat]]])
+
+@Description 
+  Gibt einen Fingerprint ("Fingerabdruck", Prüfsumme) für den angegebenen Puffer zurück.
+
+@Parameter "*Puffer"
+  Der Speicherpuffer, welcher die Daten enthält.
+
+@Parameter "Größe"
+  Die Größe des angegebenen Puffers.
+
+@Parameter "Plugin"
+  Das zu verwendende Plugin. Dies kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Cipher_CRC32: verwendet den CRC32 Algorithmus. @@UseCRC32Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_MD5  : verwendet den MD5 Algorithmus. @@UseMD5Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA1 : verwendet den SHA1 Algorithmus. @@UseSHA1Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA2 : verwendet den SHA2 Algorithmus. @@UseSHA2Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA3 : verwendet den SHA3 Algorithmus. @@UseSHA3Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+@EndFixedFont
+  Das zu verwendende Plugin kann mit dem @#PB_Cipher_HMAC Flag kombiniert werden, um einen HMAC
+  (Hash-basierter Nachrichtenauthentifizierungscode, englisch "hash based message authentication code")
+  anstelle eines regulären 'Fingerprints' zu berechnen. In diesem Fall wird zusätzlich der Parameter
+  "HmacKey$" benötigt.
+  Ein Beispiel für die Verwendung des HMAC-Flags finden Sie unter @@StringFingerprint.
+
+@OptionalParameter "Bits"
+  Die für die Prüfsumme zu verwendende Anzahl Bits. Dies wird nur bei den folgenden Plugins unterstützt:
+@FixedFont
+  @#PB_Cipher_SHA2 : kann 224, 256 (Standard), 384 oder 512 lauten.
+  @#PB_Cipher_SHA3 : kann 224, 256 (Standard), 384 oder 512 lauten.
+@EndFixedFont
+
+@OptionalParameter "HmacKey$"
+  Der geheime Schlüssel, der bei der HMAC-Berechnung verwendet werden soll. Dieser Parameter wird nur
+  verwendet, wenn @#PB_Cipher_HMAC beim 'Plugin'-Parameter hinzugefügt wird.
+  
+@OptionalParameter "HmacKeyFormat"
+  Das für den HMAC-Schlüssel zu verwendende Stringformat. Dies kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Ascii  : kodiert den Schlüssel in ASCII
+  @#PB_UTF8   : kodiert den Schlüssel in UTF-8 (Standard).
+  @#PB_Unicode: kodiert den Schlüssel in Unicode
+@EndFixedFont
+
+@ReturnValue
+  Gibt den Fingerprint als einen hexadezimalen String zurück.
+
+@Example
+@Code
+  UseMD5Fingerprint()
+
+  *Buffer = AllocateMemory(500)    
+  If *Buffer
+    PokeS(*Buffer, "The quick brown fox jumps over the lazy dog.", -1, #PB_Ascii)
+    MD5$ = Fingerprint(*Buffer, MemoryStringLength(*Buffer, #PB_Ascii), #PB_Cipher_MD5)
+    Debug "MD5 Fingerprint = " + MD5$
+    FreeMemory(*Buffer)  ; würde auch am Ende des Programms automatisch erfolgen
+  EndIf
+@EndCode
+
+@SeeAlso
+  @@FileFingerprint, @@StartFingerprint, @@StringFingerprint
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis$ = StringFingerprint(String$, Plugin [, Bits [, Format [, HmacKey$ [, HmacKeyFormat]]]])
+
+@Description 
+  Gibt einen Fingerprint ("Fingerabdruck", Prüfsumme) für den angegeben String zurück.
+
+@Parameter "String$"
+  Der zu "hashende" String.
+
+@Parameter "Plugin"
+  Das zu verwendende Plugin. Dies kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Cipher_CRC32: verwendet den CRC32 Algorithmus. @@UseCRC32Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_MD5  : verwendet den MD5 Algorithmus. @@UseMD5Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA1 : verwendet den SHA1 Algorithmus. @@UseSHA1Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA2 : verwendet den SHA2 Algorithmus. @@UseSHA2Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+  @#PB_Cipher_SHA3 : verwendet den SHA3 Algorithmus. @@UseSHA3Fingerprint muss vorher aufgerufen werden, um dieses Plugin zu registrieren.
+@EndFixedFont
+  Das zu verwendende Plugin kann mit dem @#PB_Cipher_HMAC Flag kombiniert werden, um einen HMAC
+  (Hash-basierter Nachrichtenauthentifizierungscode, englisch "hash based message authentication code")
+  anstelle eines regulären 'Fingerprints' zu berechnen. In diesem Fall wird zusätzlich der Parameter
+  "HmacKey$" benötigt.
+
+@OptionalParameter "Bits"
+  Die für die Prüfsumme zu verwendende Anzahl Bits. Dies wird nur bei den folgenden Plugins unterstützt:
+@FixedFont
+  @#PB_Cipher_SHA2 : kann 224, 256 (Standard), 384 oder 512 lauten.
+  @#PB_Cipher_SHA3 : kann 224, 256 (Standard), 384 oder 512 lauten.
+@EndFixedFont
+
+@OptionalParameter "Format"
+  Das zu verwendende Stringformat, bevor dieser "gehasht" wird. Dies kann einer der folgenden Werte sein:
+@FixedFont  
+  @#PB_UTF8    : der String wird im UTF8 Format gehasht (Standard).
+  @#PB_Ascii   : der String wird im ASCII Format gehasht.
+  @#PB_Unicode : der String wird im Unicode (UTF16) Format gehasht.
+@EndFixedFont
+
+@OptionalParameter "HmacKey$"
+  Der geheime Schlüssel, der bei der HMAC-Berechnung verwendet werden soll. Dieser Parameter wird nur
+  verwendet, wenn @#PB_Cipher_HMAC beim 'Plugin'-Parameter hinzugefügt wird.
+  
+@OptionalParameter "HmacKeyFormat"
+  Das für den HMAC-Schlüssel zu verwendende Stringformat. Dies kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Ascii  : kodiert den Schlüssel in ASCII
+  @#PB_UTF8   : kodiert den Schlüssel in UTF-8 (Standard).
+  @#PB_Unicode: kodiert den Schlüssel in Unicode
+@EndFixedFont
+
+@ReturnValue
+  Gibt den Fingerprint als einen hexadezimalen String zurück.
+
+@Example
+@Code
+  UseMD5Fingerprint()
+
+  Debug StringFingerprint("yourpassword", #PB_Cipher_MD5)
+@EndCode
+
+@Example HMAC
+@Code
+  UseSHA2Fingerprint()
+
+  ; Verwendet hmacSha256 mit Schlüssel und Nachricht im ASCII-Format
+  ; Sollte 4643978965ffcec6e6d73b36a39ae43ceb15f7ef8131b8307862ebc560e7f988 lauten
+  Debug StringFingerprint("the message to hash here", #PB_Cipher_SHA2|#PB_Cipher_HMAC, 256, #PB_Ascii, "the shared secret key here", #PB_Ascii)
+@EndCode
+
+@SeeAlso
+  @@FileFingerprint, @@StartFingerprint, @@Fingerprint
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function UseMD5Fingerprint()
+
+@Description
+  Registriert das MD5 (Message Digest 5) Fingerprint Plugin für die weitere Nutzung.
+
+@NoParameters
+@NoReturnValue
+
+@Remarks
+  Hier eine kurze Erläuterung von RFC 1321 über MD5:
+@LineBreak
+@LineBreak
+  'Der Algorithmus verwendet als Eingabe eine Mitteilung beliebiger Länge und
+  produziert als Ausgabe einen 128-Bit "Fingerprint" (Fingerabdruck) oder "Message Digest"
+  (deutsch in etwa "Nachrichten-Übersicht")
+  der Eingabe. Es wird allgemein angenommen, dass es unmöglich ist: zwei Mitteilungen
+  zu produzieren, die im selben "Message Digest" resultieren oder eine Mitteilung
+  zu erstellen, wo vorher der daraus resultierende "Message Digest" bekannt ist.
+  Der MD5 Algorithmus ist geeignet für Applikationen mit digitaler Unterschrift.' 
+@LineBreak
+@LineBreak
+  MD5 Hash-Codes werden häufig für Passwort-Verschlüsselung benutzt, aber es sollte 
+  gemieden werden, da sich eine Verletzbarkeit durch verschiedentliche Attaken erwiesen hat. 
+  Weitere Informationen finden Sie im RFC 1321: 
+  @InternetLink "http://www.ietf.org/rfc/rfc1321.txt" "http://www.ietf.org/rfc/rfc1321.txt".
+
+@Example  
+@Code
+  UseMD5Fingerprint()
+
+  Debug StringFingerprint("yourpassword", #PB_Cipher_MD5)
+@EndCode
+
+@SeeAlso
+  @@UseSHA1Fingerprint(), @@UseSHA2Fingerprint(), @@UseSHA3Fingerprint(), @@UseCRC32Fingerprint()
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function UseSHA1Fingerprint()
+
+@Description
+  Registriert das SHA1 Fingerprint Plugin für die weitere Nutzung.
+
+@NoParameters
+@NoReturnValue
+
+@Remarks
+  SHA1 kann zur Berechnung einer Prüfsumme verwendet werden, um
+  sicherzugehen, dass eine 'Nachricht' nicht verändert wurde. Anders als bei
+  @Link "UseCRC32Fingerprint" "CRC32" ist es nahezu unmöglich, die originale Nachricht zu
+  verändern und trotzdem den gleichen SHA1 Fingerabdruck zu erhalten.
+@LineBreak
+@LineBreak
+  Hier eine kurze Erläuterung aus dem RFC 3174 über SHA1:
+@LineBreak
+@LineBreak
+  'Der SHA-1 wird sicher genannt, da es rechnerisch unmöglich ist: eine Nachricht zu
+  finden, die zu einem angegebenen "Message Digest" (Prüfsumme) passt; oder zwei unterschiedliche
+  Nachrichten zu finden, welche den gleichen "Message Digest" produzieren.
+  Jede Änderung einer Nachricht während der Übertragung wird mit sehr hoher Wahrscheinlichkeit
+  in einen unterschiedlichen "Message Digest" resultieren, und die Signatur wird bei
+  der Überprüfung fehlschlagen.'
+@LineBreak
+@LineBreak
+  Weitere Informationen sind im RFC 3174 zu finden:
+  @InternetLink "http://www.ietf.org/rfc/rfc3174.txt" "http://www.ietf.org/rfc/rfc3174.txt".
+
+@Example  
+@Code
+  UseSHA1Fingerprint()
+
+  Debug StringFingerprint("yourpassword", #PB_Cipher_SHA1)
+@EndCode
+
+@SeeAlso
+  @@UseMD5Fingerprint(), @@UseSHA2Fingerprint(), @@UseSHA3Fingerprint(), @@UseCRC32Fingerprint()
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function UseSHA2Fingerprint()
+
+@Description
+  Registriert das SHA2 Fingerprint Plugin für die weitere Nutzung.
+  Die standardmäßigen 224-Bit, 256-Bit, 384-Bit und 512-Bit Varianten werden unterstützt.
+
+@NoParameters
+@NoReturnValue
+
+@Remarks
+  Vom (englischen) @InternetLink "https://en.wikipedia.org/wiki/SHA-2" "Wikipedia": SHA-2 includes significant changes from its predecessor, SHA-1.
+  In 2005, an algorithm emerged for finding SHA-1 collisions in about 2000-times fewer steps than was previously thought possible.
+  Although (as of 2015) no example of a SHA-1 collision has been published yet, the security margin left by SHA-1 is weaker than intended, 
+  and its use is therefore no longer recommended for applications that depend on collision resistance, such as digital signatures. 
+  Although SHA-2 bears some similarity to the SHA-1 algorithm, these attacks have not been successfully extended to SHA-2.
+  
+@Example  
+@Code
+  UseSHA2Fingerprint()
+
+  Debug StringFingerprint("yourpassword", #PB_Cipher_SHA2, 512) ; verwende die SHA2-512 Variante
+@EndCode
+
+@SeeAlso
+  @@UseMD5Fingerprint(), @@UseSHA1Fingerprint(), @@UseSHA3Fingerprint(), @@UseCRC32Fingerprint()
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function UseSHA3Fingerprint()
+
+@Description
+  Registriert das SHA3 Fingerprint Plugin für die weitere Nutzung.
+  Die standardmäßigen 224-Bit, 256-Bit, 384-Bit und 512-Bit Varianten werden unterstützt.
+
+@NoParameters
+@NoReturnValue
+
+@Example  
+@Code
+  UseSHA3Fingerprint()
+
+  Debug StringFingerprint("yourpassword", #PB_Cipher_SHA3, 512) ; verwende die SHA3-512 Variante
+@EndCode
+
+@SeeAlso
+  @@UseMD5Fingerprint(), @@UseSHA1Fingerprint(), @@UseSHA2Fingerprint(), @@UseCRC32Fingerprint()
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function UseCRC32Fingerprint()
+
+@Description
+  Registriert das CRC32 Fingerprint Plugin für die weitere Nutzung.
+
+@NoParameters
+@NoReturnValue
+
+@Remarks
+  CRC32 ist ein 32-Bit "Fingerabdruck" (englisch "Fingerprint"), der - da er leicht zu knacken ist - nicht
+  für Passwort-Sicherung gedacht ist, sondern für die schnelle Prüfung der Datenintegrität. 
+@LineBreak
+@LineBreak
+  Zum Beispiel haben ZIP-Dateien am Ende jeder Datei eine CRC32 Prüfsumme, um sicherzustellen, dass das 
+  Zip-Archiv nicht defekt ist. Der Hauptvorteil von CRC32 gegenüber MD5 oder anderen Hash-Algorithmen 
+  ist seine sehr hohe Geschwindigkeit.
+
+@Example  
+@Code
+  UseCRC32Fingerprint()
+
+  Debug StringFingerprint("any text", #PB_Cipher_CRC32)
+@EndCode
+
+@SeeAlso
+  @@UseMD5Fingerprint(), @@UseSHA1Fingerprint(), @@UseSHA2Fingerprint(), @@UseSHA3Fingerprint()
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = Base64DecoderBuffer(*EingabePuffer, EingabeGröße, *AusgabePuffer, AusgabeGröße)
+
+@Description
+  Dekodiert den angegebenen - mit @Link "Base64EncoderBuffer" "Base64 kodierten" - 'EingabePuffer'.
+
+@Parameter "*EingabePuffer"
+  Der Puffer, welcher die kodierten Daten enthält.
+
+@Parameter "EingabeGröße"
+  Die Größe des Eingabepuffers.
+
+@Parameter "*AusgabePuffer"
+  Der Ausgabepuffer, wohin die reinen Daten kopiert werden.
+
+@Parameter "AusgabeGröße"
+  Die Größe des Ausgabepuffers.
+@LineBreak
+@LineBreak
+  Der Ausgabepuffer kann bis zu 25% kleiner als der Eingabepuffer sein, mit einer minimalen
+  Größe von 64 Bytes. Es ist jedoch empfehlenswert, einen etwas größeren Puffer (etwa 20% kleiner)
+  zu verwenden, um einen Speicherüberlauf ("Overflow") zu vermeiden.
+
+@ReturnValue
+  Gibt die Länge der dekodierten Daten in Bytes zurück.
+
+@Example
+@Code
+  Example$ = "This is a test string!" 
+  Decoded$ = Space(1024) 
+  Encoded$ = Space(1024) 
+    
+  Debug Base64EncoderBuffer(@Example$, StringByteLength(Example$), @Encoded$, StringByteLength(Encoded$))
+  Debug Encoded$ 
+    
+  Debug Base64DecoderBuffer(@Encoded$, StringByteLength(Encoded$), @Decoded$, StringByteLength(Decoded$))
+  Debug Decoded$
+@EndCode
+
+@Example Kodieren & Dekodieren einer DataSection
+@Code
+  DataSection
+    Test:
+    Data.a $00, $01, $02, $03, $04, $05, $06, $07
+    Data.a $08, $09, $0A, $0B, $0C, $0D, $0E, $0F
+    TestEnd:
+  EndDataSection
+  
+  Size = (?TestEnd - ?Test) * 1.35
+  If Size < 64
+    Size = 64
+  EndIf
+  
+  *EncodeBuffer = AllocateMemory(Size)
+  Size = Base64EncoderBuffer(?Test, ?TestEnd - ?Test, *EncodeBuffer, MemorySize(*EncodeBuffer))
+  Encoded$ = PeekS(*EncodeBuffer, Size, #PB_Ascii)
+  Debug Encoded$
+  
+  *DecodeBuffer = AllocateMemory(Size)
+  Size = PokeS(*EncodeBuffer, Encoded$, StringByteLength(Encoded$, #PB_Ascii), #PB_Ascii|#PB_String_NoZero)
+  Size = Base64DecoderBuffer(*EncodeBuffer, Size, *DecodeBuffer, MemorySize(*DecodeBuffer))
+  ShowMemoryViewer(*DecodeBuffer, Size)
+@EndCode
+
+@SeeAlso
+  @@Base64EncoderBuffer
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = Base64EncoderBuffer(*EingabePuffer, EingabeGröße, *AusgabePuffer, AusgabeGröße [, Flags])
+
+@Description
+  Kodiert den angegebenen Speicherpuffer unter Verwendung des "Base64-Algorithmus".
+  Dieser wird hauptsächlich in Email-Programmen benutzt, kann aber auch nützlich für
+  alle anderen Programme sein, die das Kodieren von rohen Binär-Dateien zu Dateien
+  im ASCII-Format (7 Bit, Zeichen nur von 32 bis 127 der ASCII-Tabelle) benötigen.
+
+@Parameter "*EingabePuffer"
+  Der Puffer, welcher die reinen Daten enthält.
+
+@Parameter "EingabeGröße"
+  Die Größe des Eingabepuffers.
+
+@Parameter "*AusgabePuffer"
+  Der Ausgabepuffer, wohin die kodierten Daten kopiert werden.
+
+@Parameter "AusgabeGröße"
+  Die Größe des Ausgabepuffers.
+@LineBreak
+@LineBreak
+  Der Ausgabepuffer sollte mindestens 33% größer als der Eingabepuffer sein, mit einer 
+  minimalen Größe von 64 Bytes. Es ist jedoch empfehlenswert, einen noch etwas größeren Puffer 
+  (etwa 35% größer) zu verwenden, um einen Speicherüberlauf ("Overflow") zu vermeiden.
+
+@OptionalParameter "Flags"
+  Dies kann eine Kombination der folgenden Werte sein:
+@FixedFont  
+  @#PB_Cipher_NoPadding: es wird am Ende des kodierten Puffers kein zusätzliches '=' eingefügt, um es auf die 3 Bytes-Grenze zu "padden"
+  @#PB_Cipher_URL      : es verwendet eine etwas andere Kodierung, hauptsächlich verwendet in URLs. Die üblicherweise als '+' und '/'
+                        kodierten Zeichen, werden jeweils in '-' bzw. '_' kodiert.
+@EndFixedFont
+
+@ReturnValue
+  Gibt die Länge der kodierten Daten in Bytes zurück.
+
+@Example
+@Code
+  Example$ = "This is a test string!" 
+  Decoded$ = Space(1024) 
+  Encoded$ = Space(1024) 
+    
+  Debug Base64EncoderBuffer(@Example$, StringByteLength(Example$), @Encoded$, StringByteLength(Encoded$))
+  Debug Encoded$ 
+    
+  Debug Base64DecoderBuffer(@Encoded$, StringByteLength(Encoded$), @Decoded$, StringByteLength(Decoded$))
+  Debug Decoded$
+@EndCode
+
+@SeeAlso
+  @@Base64DecoderBuffer
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = Base64Decoder(Eingabe$, *AusgabePuffer, AusgabeGröße)  
+
+@Description
+  Dekodiert den angegebenen - mit @Link "Base64Encoder" "Base64 kodierten" - Eingabestring.
+
+@Parameter "Eingabe$"
+  Ein String, welcher die kodierten Daten enthält.
+
+@Parameter "*AusgabePuffer"
+  Der Ausgabepuffer, wohin die reinen Daten kopiert werden.
+
+@Parameter "AusgabeGröße"
+  Die Größe des Ausgabepuffers.
+@LineBreak
+@LineBreak
+  Der Ausgabepuffer kann bis zu 25% kleiner als der Eingabepuffer sein, mit einer minimalen
+  Größe von 64 Bytes. Es ist jedoch empfehlenswert, einen etwas größeren Puffer (etwa 20% kleiner)
+  zu verwenden, um einen Speicherüberlauf ("Overflow") zu vermeiden.
+
+@ReturnValue
+  Gibt die Länge der dekodierten Daten in Bytes zurück.
+
+@Example
+@Code
+  String$ = "This is a test string!"
+  
+  ; Kodieren eines ASCII-Strings
+  *Text = Ascii(String$)
+  Encoded$ = Base64Encoder(*Text, StringByteLength(String$, #PB_Ascii))
+  Debug "Encoded: " + Encoded$
+  
+  *DecodedBuffer = AllocateMemory(1024)
+  Base64Decoder(Encoded$, *DecodedBuffer, 1024)
+  Debug "Decoded: '" + PeekS(*DecodedBuffer, -1, #PB_Ascii) + "'"
+  
+  FreeMemory(*Text)
+  FreeMemory(*DecodedBuffer)
+@EndCode
+
+@SeeAlso
+  @@Base64Encoder
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis$ = Base64Encoder(*EingabePuffer, EingabeGröße [, Flags])  
+
+@Description
+  Kodiert den angegebenen Speicherpuffer unter Verwendung des "Base64-Algorithmus".
+  Dieser wird hauptsächlich in Email-Programmen benutzt, kann aber auch nützlich für
+  alle anderen Programme sein, die das Kodieren von rohen Binär-Dateien zu Dateien
+  im ASCII-Format (7 Bit, Zeichen nur von 32 bis 127 der ASCII-Tabelle) benötigen.
+
+@Parameter "*EingabePuffer"
+  Der Puffer, welcher die reinen Daten enthält.
+
+@Parameter "EingabeGröße"
+  Die Größe des Eingabepuffers.
+
+@OptionalParameter "Flags"
+  Dies kann eine Kombination der folgenden Werte sein:
+@FixedFont  
+  @#PB_Cipher_NoPadding: es wird am Ende des kodierten Puffers kein zusätzliches '=' eingefügt, um es auf die 3 Bytes-Grenze zu "padden"
+  @#PB_Cipher_URL      : es verwendet eine etwas andere Kodierung, hauptsächlich verwendet in URLs. Die üblicherweise als '+' und '/'
+                        kodierten Zeichen, werden jeweils in '-' bzw. '_' kodiert.
+@EndFixedFont
+
+@ReturnValue
+  Gibt die kodierten Daten als einen String zurück.
+
+@Example
+@Code
+  String$ = "This is a test string!"
+  
+  ; Kodieren eines UTF-8 Strings
+  *Text = UTF8(String$)
+  Encoded$ = Base64Encoder(*Text, StringByteLength(String$, #PB_UTF8))
+  Debug "Encoded: " + Encoded$
+  
+  *DecodedBuffer = AllocateMemory(1024)
+  Base64Decoder(Encoded$, *DecodedBuffer, 1024)
+  Debug "Decoded: '" + PeekS(*DecodedBuffer, -1, #PB_UTF8) + "'"
+  
+  FreeMemory(*Text)
+  FreeMemory(*DecodedBuffer)
+@EndCode
+
+@SeeAlso
+  @@Base64Decoder, @@Base64DecoderBuffer, @@Base64EncoderBuffer
+  
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = StartAESCipher(#Cipher, *Schlüssel, Bits, *InitialisierungsVektor, Modus)
+
+@Description
+  Initialisiert einen neuen AES-Verschlüsselungslauf (englisch "AES cipher stream"), wozu Daten
+  mittels @@AddCipherBuffer hinzugefügt werden können.
+
+@Parameter "#Cipher"
+  Die Nummer, welche diese neue Verschlüsselung identifiziert.
+  @ReferenceLink "purebasic_objects" "#PB_Any" kann verwendet werden, um diese Nummer
+  automatisch zu generieren.
+
+@Parameter "*Schlüssel"
+  Ein Puffer, welcher den Schlüssel für das Dekodieren enthält.
+  Seine Größe hängt vom Parameter 'Bits' ab: 16 Bytes für 128 Bit-Verschlüsselung, 24 Bytes
+  für 192 Bit und 32 Bytes für 256 Bit.
+  @@DeriveCipherKey kann verwendet werden, um diesen Schlüssel aus einem Passwort zu erstellen.
+
+@Parameter "Bits"
+  Die Größe des für die Verschlüsselung verwendeten Schlüssels. Gültige Werte sind
+  128, 192 und 256.
+
+@Parameter "*InitialisierungsVektor"
+  Der InitialisierungsVektor ist ein zufälliger Datenblock, 
+  welcher für das Initialisieren der Verschlüsselung verwendet wird, um ein Knacken beim Dekodieren
+  zu verhindern (wird nur bei Verwendung des @#PB_Cipher_CBC Modus benötigt).
+  Seine Größe hängt vom Parameter 'Bits' ab: 16 Bytes für 128 Bit-Verschlüsselung, 24 Bytes für
+  196 Bit und 32 Bytes für 256 Bit.
+
+@Parameter "Mode"
+  Dieser Parameter kann eine Kombination eines der folgenden Werte sein:
+@FixedFont  
+  @#PB_Cipher_Decode: Der Verschlüsselungslauf wird zum Dekodieren von Daten verwendet.
+  @#PB_Cipher_Encode: Der Verschlüsselungslauf wird zum Kodieren von Daten verwendet.
+
+mit
+
+  @#PB_Cipher_CBC: Standard-Modus der Kodierung (Cipher Block Chaining). Benötigt einen '*InitialisierungsVektor'.
+                  Empfohlen als sicherer gegenüber dem ECB-Modus.
+  @#PB_Cipher_ECB: Alternativer Modus (Electronic CodeBook). Verwendet weder einen Zufallswert noch Verkettung
+                  (jeder Block wird unabhängig voneinander kodiert), was ihn sehr schwach im Vergleich zu CBC macht,
+                  weshalb er nicht für ernsthafte Verschlüsselung verwendet werden sollte.
+@EndFixedFont
+
+@ReturnValue
+  Wenn @#PB_Any als Parameter #Cipher verwendet wurde, dann wird die automatisch
+  generierte #Cipher Nummer zurückgegeben.
+
+@Remarks
+  Neue Puffer für das Kodieren oder Dekodieren können mittels @@AddCipherBuffer hinzugefügt werden.
+  Sobald eine Verschlüsselung abgeschlossen wurde, muss @@FinishCipher aufgerufen werden.
+  @LineBreak
+  @LineBreak
+  Für weitere Informationen über AES siehe @@AESEncoder.
+
+@SeeAlso
+  @@AddCipherBuffer, @@FinishCipher, @@AESEncoder, @@AESDecoder, @@DeriveCipherKey
+ 
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = OpenCryptRandom()
+
+@Description
+  Öffnet den kryptographisch sicheren Pseudo-Zufallszahlengenerator. Die @@CryptRandom und 
+  @@CryptRandomData Befehle können verwendet werden, um Daten vom geöffneten Generator zu lesen.
+
+@NoParameters
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn der Zufallszahlengenerator erfolgreich geöffnet werden konnte.
+  Ist das Ergebnis gleich Null, dann ist kein kryptographisch sicherer Zufallszahlengenerator auf dem
+  System verfügbar.
+
+@Remarks
+  Dieser Generator bietet Zufallsdaten, die stark genug für kryptographische Zwecke wie das Erzeugen
+  von Schlüsseln für die @@AESEncoder Function sind. Die Quelle für die Zufallsdaten ist
+  das "/dev/random" Device auf Linux und Mac OSX bzw. die "Microsoft Cryptography API" auf Windows.
+
+@LineBreak
+@LineBreak
+  Siehe den @@CryptRandomData Befehl für ein Beispiel.
+
+@SeeAlso
+  @@CryptRandom, @@CryptRandomData, @@CloseCryptRandom
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function CloseCryptRandom()
+
+@Description
+  Schließt den kryptographisch sicheren Pseudo-Zufallszahlengenerator, der mit @@OpenCryptRandom 
+  geöffnet wurde und gibt seinen Ressourcen frei.
+
+@NoParameters
+@NoReturnValue
+
+@SeeAlso
+  @@OpenCryptRandom, @@CryptRandom, @@CryptRandomData
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = CryptRandom(Maximum)
+
+@Description
+  Gibt eine Zufallszahl (Ganzzahl) zurück, welche zwischen (und einschließlich) 0 und dem 'Maximum'-Wert
+  des kryptographisch sicheren Zufallszahlengenerators liegt.
+
+@Parameter "Maximum"
+  Der Maximal-Wert, welcher von der Funktion zurückgegeben werden soll.
+  'Maximum' darf nicht den positiven @ReferenceLink "variables" "Long"-Wert übersteigen: 2147483647.
+
+@ReturnValue
+  Gibt die generierte Zufallszahl zurück.
+
+@Remarks
+  Der Generator muss zuerst mit dem @@OpenCryptRandom Befehl geöffnet worden sein.
+@LineBreak
+@LineBreak
+  @Bold "Wichtig: " Die Verwendung eines 'Maximum'-Werts, der nicht eins weniger als die Potenz von zwei
+  beträgt, macht bestimmte Zahlen wahrscheinlicher als andere, was für einen statistischen
+  Angriff verwendet werden kann. Dies ist das Ergebnis der Division der generierten Zufallszahl,
+  damit diese in den angegebenen Bereich passt.
+@LineBreak
+@LineBreak
+  Um größere Mengen an Zufallsdaten zu generieren, verwenden Sie die @@CryptRandomData Funktion.
+  Um Zufallszahlen vom schnelleren, aber nicht kryptographisch sicheren, Zufallszahlengenerator zu generieren,
+  verwenden Sie die @@Random Funktion.
+
+@SeeAlso
+  @@OpenCryptRandom, @@CryptRandomData, @@CloseCryptRandom,
+  @@Random
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Ergebnis = CryptRandomData(*Puffer, Länge)
+
+@Description
+  Füllt den angegebenen Speicherpuffer mit Zufallsdaten vom kryptographisch sicheren
+  Pseudo-Zufallszahlengenerator.
+
+@Parameter "*Puffer"
+  Der zu füllende Puffer.
+
+@Parameter "Länge"
+  Die Größe des Puffers in Bytes.
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn die Zufallsdaten erfolgreich generiert wurden,
+  andernfalls Null.
+  
+@Remarks
+  Der Generator muss zuerst mit dem @@OpenCryptRandom Befehl geöffnet worden sein.
+@LineBreak
+@LineBreak
+  Um Zufallszahlen vom schnelleren, aber nicht kryptographisch sicheren, Zufallszahlengenerator zu generieren,
+  verwenden Sie die @@RandomData Funktion.
+
+@Example
+@Code
+  *Key = AllocateMemory(16)
+  
+  If OpenCryptRandom() And *Key
+    CryptRandomData(*Key, 16)
+    
+    Text$ = "Generated Key:"
+    For i = 0 To 15
+      Text$ + " " + RSet(Hex(PeekB(*Key+i), #PB_Byte), 2, "0")
+    Next i     
+    
+    CloseCryptRandom()
+  Else
+    Text$ = "Key generation is not available"
+  EndIf
+  
+  MessageRequester("Example", Text$)
+@EndCode
+
+@SeeAlso
+  @@OpenCryptRandom, @@CryptRandom, @@CloseCryptRandom
+  @@RandomData
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------

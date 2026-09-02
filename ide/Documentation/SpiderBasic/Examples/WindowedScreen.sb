@@ -1,0 +1,48 @@
+﻿;
+; ------------------------------------------------------------
+;
+;   SpiderBasic - WindowedScreen example file
+;
+;    (c) Fantaisie Software
+;
+; ------------------------------------------------------------
+;
+
+Debug "uses arrow keys to move"
+
+OpenWindow(0, 20, 20, 820, 620, "A screen in a window...", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+
+OpenWindowedScreen(WindowID(0), 10, 10, 800, 600)
+
+Procedure RenderFrame()
+  Static x = 150, y = 50
+  
+  ClearScreen(RGB(0, 0, 0))
+  
+  If ExamineKeyboard()
+    If KeyboardPushed(#PB_Key_Left)
+      x-2
+    ElseIf KeyboardPushed(#PB_Key_Right)
+      x+2
+    EndIf
+    
+    If KeyboardPushed(#PB_Key_Up)
+      y-2
+    ElseIf KeyboardPushed(#PB_Key_Down)
+      y+2
+    EndIf
+    
+    DisplaySprite(0, x, y)
+  EndIf
+  
+  FlipBuffers() ; continue the rendering
+EndProcedure
+
+If LoadSprite(0, "Data/SpiderBasicLogo.png")
+  
+  ; Start the rendering loop
+  BindEvent(#PB_Event_RenderFrame, @RenderFrame())
+  FlipBuffers()
+Else
+  Debug "Can't load the sprite"
+EndIf

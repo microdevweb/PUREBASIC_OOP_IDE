@@ -1,0 +1,563 @@
+﻿@Title Compiler Funktionen
+
+@Syntax
+
+  Groesse = @Keyword SizeOf(Typ)
+
+@Description  
+
+  @Keyword SizeOf kann verwendet werden, um die Größe jeder komplexen @ReferenceLink "Structures" "Struktur",
+  von eingebauten Typen (Word, Fließkomma, etc.), @ReferenceLink "Interfaces" "Interface" oder sogar
+  @ReferenceLink "variables" "Variablen" (Strukturen mit dem gleichen Namen wie eine Variable haben Vorrang)
+  zu ermitteln. Dies kann auf vielen Gebieten nützlich sein, wie z.B. für
+  die Ermittlung des Speicherbedarfs für Operationen unter Verwendung von API-Befehlen.
+  @LineBreak
+  Als eine Compiler-Funktion wird SizeOf(x) einer Konstante zugewiesen und benötigt keine Zuweisung
+  zu einer Variable, wenn es sich innerhalb einer Schleife oder oft aufgerufenen Prozedur befindet.
+  @LineBreak
+  Als eine Funktion zum Zeitpunkt des Kompilierens arbeitet @Keyword SizeOf nicht mit Runtime
+  Array, List oder Map. Stattdessen können hier @@ArraySize, @@ListSize bzw. @@MapSize benutzt werden.
+
+@LineBreak
+@LineBreak
+  Hinweis: Eine Character (.c) Variable ist @ReferenceLink "unicode" "Unicode" und verwendet 2 Bytes.
+  Eine Ascii-Variable (.a) ist ASCII und verwendet 1 Byte.
+
+@Parameter "Typ"
+  Der Typ des Objekts.
+
+@ReturnValue
+  Die Größe des Objekts im Speicher, in Bytes.
+
+@Example 1
+@Code
+  char.c='!'
+  Debug SizeOf(char)  ; wird 2 anzeigen
+  
+  ascii.a='!'
+  Debug SizeOf(ascii)  ; wird 1 anzeigen
+@EndCode
+
+@Example 2
+@Code
+  Structure Person
+    Name.s
+    Vorname.s 
+    Alter.w 
+  EndStructure
+  
+  Debug "Die Größe meines Freundes ist "+Str(Sizeof(Person))+" Bytes" ; wird 10 (4+4+2) auf einem 32-Bit Compiler ergeben, da ein String-Pointer 4 Bytes im Speicher umfasst
+                                                                      ; wird 18 (8+8+2) auf einem 64-Bit Compiler ergeben, da ein String-Pointer 8 Bytes im Speicher umfasst
+
+  John.Person\Name = "John"
+  
+  Debug SizeOf(John)  ; wird das Gleiche ergeben
+  
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  Index = @Keyword OffsetOf(Struktur\Feld)
+  Index = @Keyword OffsetOf(Interface\Funktion())
+
+@Description
+
+  @Keyword OffsetOf kann verwendet werden, um den Adress-Offset eines @ReferenceLink "Structures" "Struktur"-Feldes oder den 
+  Adress-Offset einer @ReferenceLink "Interfaces" "Interface"-Funktion herauszufinden. Bei der Verwendung mit einem @ReferenceLink "Interfaces" "Interface" ist der Funktions-Index der Speicher-Offset, es gilt deshalb IndexOfTheFunction*SizeOf(Integer).
+  
+@Parameter "Struktur\Feld oder Interface\Funktion()"
+  Das Feld der Struktur oder die Funktion des Interface.
+
+@ReturnValue
+  Gibt den Index des Felds oder der Funktion zurück, andernfalls Null.
+    
+@Example
+
+@Code
+  Structure Person
+    Name.s
+    Vorname.s 
+    Alter.w 
+  EndStructure
+  
+  Debug OffsetOf(Person\Alter) ; wird 8 auf einem 32-Bit Compiler ergeben, da ein String-Pointer 4 Byte im Speicher belegt 
+                               ; wird 16 auf einem 64-Bit Compiler ergeben, da ein String-Pointer 8 Bytes im Speicher belegt
+  
+  Interface ITest
+    Create()
+    Destroy(Flags) 
+  EndInterface
+  
+  Debug OffsetOf(ITest\Destroy()) ; wird 4 auf einem 32-Bit Compiler ergeben, da ein Zeiger (Pointer) 4 Bytes im Speicher belegt
+                                  ; wird 8 auf einem 64-Bit Compiler ergeben, da ein Zeiger (Pointer) 8 Bytes im Speicher belegt
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  Typ = @Keyword TypeOf(Objekt)
+
+@Description
+
+  @Keyword TypeOf kann verwendet werden, um den Typ einer @ReferenceLink "variables" "Variable"
+  oder eines @ReferenceLink "structures" "Struktur-Feldes" herauszufinden.
+ 
+@Parameter "Objekt"
+  Das zu verwendende Objekt.
+
+@ReturnValue
+  Der Typ des Objekts.
+@LineBreak  
+@LineBreak
+  Der Typ kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Byte      
+  @#PB_Word      
+  @#PB_Long      
+  @#PB_String    
+  @#PB_Structure
+  @#PB_Float
+  @#PB_Character
+  @#PB_Double
+  @#PB_Quad
+  @#PB_List
+  @#PB_Array
+  @#PB_Integer
+  @#PB_Map
+  @#PB_Ascii
+  @#PB_Unicode
+  @#PB_Interface
+@EndFixedFont
+
+@Example
+
+@Code
+  Structure Person
+    Name.s
+    ForName.s 
+    Age.w 
+  EndStructure
+  
+  If TypeOf(Person\Age) = #PB_Word
+    Debug "Age is a 'Word'"
+  EndIf
+            
+  Surface.f                 
+  If TypeOf(Surface) = #PB_Float
+    Debug "Surface is a 'Float'"
+  EndIf
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  Ergebnis = @Keyword Subsystem(<Konstanter String-Ausdruck>)
+
+@Description
+
+  @Keyword Subsystem kann verwendet werden, um herauszufinden, ob ein @ReferenceLink "subsystems" "Subsystem" 
+  für das zu kompilierende Programm verwendet wird. Beim angegebenen Subsystem-Namen wird die
+  Groß-/Kleinschreibung nicht beachtet.
+
+@Parameter "Konstanter String-Ausdruck"
+  Der Subsystem-Name.@LineBreak
+  Windows: DirectX9, DirectX11 @LineBreak
+  Linux  : Gtk2, Qt @LineBreak
+  MacOS X: Keiner
+ 
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn das Subsystem verwendet wird, andernfalls Null.
+
+@Example
+
+@Code
+  CompilerIf Subsystem("DirectX9")   ; nur auf Windows
+    Debug "Kompilierung mit dem DirectX9 Subsystem"
+  CompilerElseIf Subsystem("gtk2")   ; nur auf Linux
+    Debug "Kompilierung mit dem gtk2 Subsystem"
+  CompilerEndIf
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  Ergebnis = @Keyword Defined(Name, Typ)
+
+@Description
+
+  @Keyword Defined überprüft, ob ein bestimmtes Objekt innerhalb des Quellcodes wie 
+  @ReferenceLink "structures" "Struktur", @ReferenceLink "interfaces" "Interface", @ReferenceLink "variables" "Variable" 
+  bereits definiert ist oder nicht. 
+ 
+@Parameter "Name"
+  Der Name des Objekts.
+  Der 'Name' muss ohne jeden Zusatz (z.B. ohne '#' für eine @ReferenceLink "general_rules" "Konstante",
+  ohne '()' für ein @ReferenceLink "dim" "Array", einer @ReferenceLink "newlist" "verknüpften Liste" oder einer
+  @ReferenceLink "newmap" "Map") angegeben werden.
+  
+@Parameter "Typ"
+  Der Parameter 'Typ' kann einer der folgenden Werte sein:
+@FixedFont
+  @#PB_Constant
+  @#PB_Variable
+  @#PB_Array
+  @#PB_List
+  @#PB_Map
+  @#PB_Structure
+  @#PB_Interface
+  @#PB_Procedure
+  @#PB_Function
+  @#PB_OSFunction
+  @#PB_Label
+  @#PB_Prototype
+  @#PB_Module
+  @#PB_Enumeration
+@EndFixedFont
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn das Objekt definiert ist, andernfalls Null.
+
+@Example
+
+@Code
+  #PureConstant = 10
+  
+  CompilerIf Defined(PureConstant, #PB_Constant)
+    Debug "Konstante 'PureConstant' ist deklariert"
+  CompilerEndIf
+  
+  Test = 25
+  
+  CompilerIf Defined(Test, #PB_Variable)
+    Debug "Variable 'Test' ist deklariert"
+  CompilerEndIf
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  @Keyword InitializeStructure(*Zeiger, Struktur)
+
+@Description
+
+  @Keyword InitializeStructure initialisiert den angegebenen @ReferenceLink "structures" "strukturierten" Speicherbereich.
+  Es initialisiert die Struktur-Objekte ("members") vom Typ @ReferenceLink "dim" "Array", @ReferenceLink "newlist" "Liste" oder
+  @ReferenceLink "newmap" "Map", andere Objekte sind nicht betroffen (.s, .l, .i etc.).
+  
+@Parameter "*Zeiger"
+  Die zu verwendende Speicheradresse.
+  
+@Parameter "Struktur"
+  'Struktur' ist der Name der Struktur, welche zum Durchführen der Initialisierung verwendet werden soll. Es gibt keine
+  interne Überprüfung, um sicherzugehen, dass die Struktur zum Speicherbereich passt.
+  @LineBreak
+  Warnung: mehrfache Aufrufe von
+  @Keyword InitializeStructure verursachen einen Speicherverlust ("memory leak"), da die alten Struktur-Objekte nicht
+  freigegeben werden (@Keyword ClearStructure muss aufgerufen werden, bevor @Keyword InitializeStructure ein weiteres Mal
+  aufgerufen wird). Diese Funktion ist für fortgeschrittene Anwender und sollte mit Bedacht verwendet werden.
+  @LineBreak
+  Um dynamische Strukturen zu allokieren, verwenden Sie @@AllocateStructure().
+   
+@NoReturnValue 
+
+@Example
+
+@Code
+  Structure People
+    Name$
+    Age.l
+    List Friends.s()
+  EndStructure
+
+  *Student.People = AllocateMemory(SizeOf(People))
+  InitializeStructure(*Student, People)
+
+  ; Jetzt ist die Liste fertig zur Benutzung
+  ;
+  AddElement(*Student\Friends())
+  *Student\Friends() = "John"
+  
+  AddElement(*Student\Friends())
+  *Student\Friends() = "Yann"
+
+  ; Den Listen-Inhalt ausgeben
+  ;
+  ForEach *Student\Friends()
+    Debug *Student\Friends()
+  Next
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  Ergebnis = @Keyword CompareStructure(*Zeiger1, *Zeiger2, Struktur [, Flags])
+
+@Description
+
+  @Keyword CompareStructure vergleicht den Speicher zweier @ReferenceLink "structures" "Strukturen" auf Gleichheit.
+  Der Vergleich wird rekursiv auch auf untergeordnete Elemente wie @ReferenceLink "dim" "Arrays", 
+  @ReferenceLink "newlist" "Listen" und @ReferenceLink "newmap" "Maps" angewendet.
+
+@Parameter "*Zeiger1"
+  Die Speicheradresse der ersten strukturierten Variable, die getestet werden soll.
+
+@Parameter "*Zeiger2"
+  Die Speicheradresse der ersten strukturierten Variable, die getestet werden soll.
+
+@Parameter "Struktur"
+  Die verwendete Struktur.
+
+@OptionalParameter "Flags"
+  Dieser kann einen der folgenden Werte haben:
+@FixedFont
+  @#PB_String_CaseSensitive : Beim String-Vergleich wird die Groß-/Kleinschreibung beachtet (a=a). (Standard)
+  @#PB_String_NoCase        : Beim String-Vergleich wird die Groß-/Kleinschreibung nicht beachtet (a=A).
+  @#PB_Memory_FollowPointers: Wenn ein Strukturelement ein Zeiger ist, der nicht 0 ist, vergleichen Sie das Zeigerziel rekursiv.
+                             Standardmäßig wird nur der Zeigerwert selbst verglichen.
+@EndFixedFont
+
+@Remarks
+@Bold "Achtung:"
+  Die Option @#PB_Memory_FollowPointers ist für fortgeschrittene Benutzer gedacht und erfordert besondere Sorgfalt,
+  um Abstürze zu vermeiden. Wenn diese Option verwendet wird, müssen alle Zeigerwerte auf einen gültigen und
+  initialisierten Speicher zeigen oder den Wert 0 haben. Es ist auch nicht erlaubt, Schleifen in den pointierten
+  Elementen (englisch "pointed elements" - eine Kette von Zeigern, die auf sich selbst verweist) zu haben.
+
+@Example
+
+@ReturnValue
+  Gibt einen Wert ungleich Null zurück, wenn die Strukturen gleich sind, oder Null wenn sie sich unterscheiden.
+
+@Code
+  Structure People
+    Name$
+    LastName$
+    Map Friends$()
+    Age.l
+  EndStructure
+
+  StudentA.People\Name$ = "Paul"
+  StudentA\LastName$ = "Morito"
+  StudentA\Friends$("Tom") = "Jones"
+  StudentA\Friends$("Jim") = "Doe"
+
+  StudentB.People\Name$ = "Paul"
+  StudentB\LastName$ = "Morito"
+  StudentB\Friends$("Tom") = "Jones"
+  StudentB\Friends$("Jim") = "Doe"
+
+  StudentC.People\Name$ = "Paul"
+  StudentC\LastName$ = "Morito"
+  StudentC\Friends$("Tom") = "Hanks" ; Nicht dasselbe wie in StudentA
+  StudentC\Friends$("Jim") = "Doe"
+
+  Debug CompareStructure(@StudentA, @StudentB, People) ; Gleich
+  Debug CompareStructure(@StudentA, @StudentC, People) ; Nicht gleich
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  @Keyword CopyStructure(*Quelle, *Ziel, Struktur)
+
+@Description
+
+  @Keyword CopyStructure() kopiert den Speicherinhalt eines @ReferenceLink "structures" "strukturierten" 
+  Speicherbereichs in einen anderen.
+  @LineBreak
+  Dies ist nützlich beim Umgang mit dynamischen Zuweisungen mittels @ReferenceLink "memory" "Zeiger". Jedes der Felder wird
+  dupliziert, auch @ReferenceLink "dim" "Arrays", @ReferenceLink "newlist" "Listen" und @ReferenceLink "newmap" "Maps".
+  Die Ziel-Struktur wird vor dem Kopieren automatisch gelöscht. Es ist nicht nötig, @Keyword ClearStructure() vor
+  @Keyword CopyStructure() aufzurufen.
+  @LineBreak
+  Warnung: Das Ziel sollte ein gültiger Struktur-Speicherbereich oder ein geleerter Speicherbereich sein.
+  Wenn der Speicherbereich nicht geleert ist, kann es zu einem Absturz kommen, da von der Löschroutine zufällige
+  Werte genutzt werden.
+  @LineBreak
+  Es gibt keine interne Überprüfung, dass die Struktur auch zu den beiden Speicherbereichen passt.
+  Diese Funktion ist für fortgeschrittene Anwender und sollte mit Bedacht verwendet werden.
+    
+@Parameter "*Quelle"
+  Die Speicheradresse, welche die zu kopierende Struktur enthält.
+  
+@Parameter "*Ziel"
+  Die Speicheradresse der Kopie.
+  
+@Parameter "Struktur"
+  Der Name der Struktur, die zum Ausführen des Kopiervorgangs verwendet werden soll.
+  
+@NoReturnValue
+  
+@Example
+
+@Code
+  Structure People
+    Name$
+    LastName$
+    Map Friends$()
+    Age.l
+  EndStructure
+
+  Student.People\Name$ = "Paul"
+  Student\LastName$ = "Morito"
+  Student\Friends$("Tom") = "Jones"
+  Student\Friends$("Jim") = "Doe"
+  
+  CopyStructure(@Student, @StudentCopy.People, People)
+  
+  Debug StudentCopy\Name$
+  Debug StudentCopy\LastName$
+  Debug StudentCopy\Friends$("Tom")
+  Debug StudentCopy\Friends$("Jim")
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  Ergebnis = @Keyword ClearStructure(*Zeiger, Struktur)
+
+@Description
+
+  @Keyword ClearStructure löscht einen @ReferenceLink "structures" "strukturierten" Speicherbereich.
+  Dies ist nützlich, wenn die Struktur @ReferenceLink "variables" "Strings", @ReferenceLink "dim" "Arrays",
+  @ReferenceLink "newlist" "Listen" oder @ReferenceLink "newmap" "Maps"  beinhaltet, welche intern von PureBasic allokiert wurden.
+  Diese Funktion ist für fortgeschrittene Anwender und sollte mit Bedacht verwendet werden.
+    
+@Parameter "*Zeiger"
+  Die Speicheradresse, die die zu löschende Struktur enthält.
+  
+@Parameter "Struktur"
+  Der Name der Struktur, welche zum Ausführen des Löschens verwendet werden soll. Alle Felder werden auf Null
+  gesetzt. Es gibt keine interne Überprüfung, um sicherzustellen, dass die Struktur zum Speicherbereich passt.
+  
+@NoReturnValue
+
+@Example
+
+@Code
+  Structure People
+    Name$
+    LastName$
+    Age.l
+  EndStructure
+
+  Student.People\Name$ = "Paul"
+  Student\LastName$ = "Morito"
+  Student\Age = 10
+  
+  ClearStructure(@Student, People)
+  
+  ; Wird leere Strings ausgeben, da die gesamte Struktur gelöscht wurde. Alle anderen Felder wurden auf Null zurückgesetzt.
+  ;
+  Debug Student\Name$
+  Debug Student\LastName$
+  Debug Student\Age
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  @Keyword ResetStructure(*Zeiger, Struktur)
+
+@Description
+
+  @Keyword ResetStructure löscht einen @ReferenceLink "structures" "strukturierten" Speicherbereich
+  und initialisiert diesen, damit dieser sofort einsatzbereit ist.
+  Dies ist nützlich, wenn die Struktur @ReferenceLink "variables" "Strings", @ReferenceLink "dim" "Arrays",
+  @ReferenceLink "newlist" "Listen" oder @ReferenceLink "newmap" "Maps"  beinhaltet, welche intern von PureBasic allokiert wurden.
+  Diese Funktion ist für fortgeschrittene Anwender und sollte mit Bedacht verwendet werden.
+   
+@Parameter "*Zeiger"
+  Die Speicheradresse, die die neu zu initialisierende Struktur enthält.
+   
+@Parameter "Struktur"
+  Der Name der Struktur, welche zum Durchführen des Löschens verwendet werden soll.
+   
+@NoReturnValue
+  
+@Example
+
+@Code
+  Structure Person
+    Map Friends.s()
+  EndStructure
+
+  Henry.Person\Friends("1") = "Paul"
+  
+  ResetStructure(@Henry, Person)
+  
+  ; Wird einen leeren String ausgeben, da die gesamte Struktur zurückgesetzt wurde. Die Map ist weiterbin benutzbar, jedoch leer.
+  ;
+  Debug Henry\Friends("1")
+@EndCode
+
+; -------------------------------------------------------------------------------------------------
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Syntax
+
+  Ergebnis = @Keyword Bool(<Boolescher Ausdruck>)
+
+@Description
+
+  @Keyword Bool kann verwendet werden, um einen booleschen Ausdruck außerhalb der regulären bedingten Operatoren wie
+  @Keyword If, @Keyword While, @Keyword Until etc. auszuwerten.
+
+@Parameter "Boolescher Ausdruck"
+  Der zu testende Boolesche Ausdruck.
+
+@ReturnValue
+  Gibt @#True zurück, wenn der Boolesche Ausdruck wahr ist, andernfalls @#False.
+  
+@Example
+
+@Code
+  Hello$ = "Hello"
+  World$ = "World"
+
+  Debug Bool(Hello$ = "Hello")  ; wird 1 ausgeben
+  Debug Bool(Hello$ <> "Hello" Or World$ = "World") ; wird 1 ausgeben
+@EndCode
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf

@@ -1,0 +1,15 @@
+﻿;
+; ------------------------------------------------------------
+;
+;   SpiderBasic - Image example file
+;
+;    (c) Fantaisie Software
+;
+; ------------------------------------------------------------
+;
+
+LoadImage(0, "Data/SpiderBasicLogo.png")
+
+; Display the image in a new window
+OpenWindow(#PB_Any, 10, 10, ImageWidth(ObjectId), ImageHeight(ObjectId), "Image")
+ImageGadget(#PB_Any, 0, 0, ImageWidth(ObjectId), ImageHeight(ObjectId), ImageID(ObjectId))

@@ -1,0 +1,19 @@
+﻿Namespace Math::Geometry
+
+  Class Shape
+    Protected nom.s
+
+    Public Method Init(nom_p.s)
+      This\nom = nom_p
+    EndMethod
+
+    Public Method.d CalculerAire()
+      ProcedureReturn 0.0
+    EndMethod
+
+    Public Method Afficher()
+      PrintN("Forme : " + This\nom + " | Aire = " + StrD(This\CalculerAire(), 2))
+    EndMethod
+  EndClass
+
+EndNamespace

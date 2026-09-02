@@ -1,0 +1,46 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - ProgressBar.pbo
+; Standard ProgressBar wrapper
+; ============================================================================
+
+XIncludeFile "../Gadget.pbo"
+XIncludeFile "../Application.pbo"
+
+Namespace UI {
+
+  Class ProgressBar Extends Gadget {
+    Protected minVal.i
+    Protected maxVal.i
+
+    Public Method Init(x_p.i, y_p.i, w_p.i = 200, h_p.i = 25, min_p.i = 0, max_p.i = 100, flags_p.i = 0) {
+      This\x = x_p : This\y = y_p : This\width = w_p : This\height = h_p
+      This\minVal = min_p : This\maxVal = max_p
+      This\isVisible = #True : This\isEnabled = #True
+      This\id = ProgressBarGadget(#PB_Any, x_p, y_p, w_p, h_p, min_p, max_p, flags_p)
+      If (This\id) {
+        UI::RegisterGadget(This\id, This)
+      }
+    }
+
+    Public Method.i GetValue() {
+      If (This\id And IsGadget(This\id)) {
+        ProcedureReturn GetGadgetState(This\id)
+      }
+      ProcedureReturn 0
+    }
+
+    Public Method SetValue(v.i) {
+      If (This\id And IsGadget(This\id)) {
+        SetGadgetState(This\id, v)
+      }
+    }
+
+    Public Method Free() {
+      If (This\id) {
+        UI::UnregisterGadget(This\id)
+        Super::Free()
+      }
+    }
+  }
+
+}

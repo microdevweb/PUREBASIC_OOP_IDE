@@ -1,0 +1,3 @@
+LIBRARY "SyntaxHighlighting.dll"
+EXPORTS
+"SyntaxHighlight"="Procedure40"

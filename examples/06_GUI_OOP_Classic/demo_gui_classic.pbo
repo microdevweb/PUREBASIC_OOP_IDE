@@ -1,0 +1,86 @@
+﻿; ============================================================================
+; Exemple 06 : Application GUI OOP Complete (Syntaxe PureBasic Classique)
+; ============================================================================
+
+XIncludeFile "../../lib/ui/UI.pbo"
+
+Using UI
+Using UI::Controls
+
+Class GreetButton Extends UI::Button
+  Protected *nameInput.UI::TextBox
+  Protected *statusLabel.UI::Label
+
+  Public Method BindControls(*input.UI::TextBox, *lbl.UI::Label)
+    This\*nameInput = *input
+    This\*statusLabel = *lbl
+  EndMethod
+
+  Public Method OnClick()
+    Protected userName.s = "Visiteur"
+    If This\*nameInput
+      Protected txt.s = This\*nameInput\GetText()
+      If txt <> ""
+        userName = txt
+      EndIf
+    EndIf
+    If This\*statusLabel
+      This\*statusLabel\SetText("Bonjour " + userName + " ! Heure : " + FormatDate("%hh:%ii:%ss", Date()))
+    EndIf
+  EndMethod
+EndClass
+
+Class ModeSwitch Extends UI::Controls::ToggleSwitch
+  Protected *statusLabel.UI::Label
+
+  Public Method BindLabel(*lbl.UI::Label)
+    This\*statusLabel = *lbl
+  EndMethod
+
+  Public Method OnChange()
+    If This\*statusLabel
+      If This\IsChecked()
+        This\*statusLabel\SetText("Statut : Mode TURBO Active [ON]")
+      Else
+        This\*statusLabel\SetText("Statut : Mode Standard [OFF]")
+      EndIf
+    EndIf
+  EndMethod
+EndClass
+
+Class MainWindow Extends UI::Window
+  Protected *lblTitle.UI::Label
+  Protected *lblPrompt.UI::Label
+  Protected *txtInput.UI::TextBox
+  Protected *btnGreet.GreetButton
+  Protected *lblStatus.UI::Label
+  Protected *lblSwitch.UI::Label
+  Protected *switchTurbo.ModeSwitch
+
+  Public Method Init()
+    Super::Init("PureBasic OOP - Application GUI (Syntaxe Classique)", #PB_Ignore, #PB_Ignore, 480, 260, #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+    UI::RegisterWindow(This\id, This)
+
+    This\*lblTitle = New UI::Label(20, 15, 440, 25, "=== Demonstration GUI PureBasic OOP (Classique) ===")
+    This\*lblPrompt = New UI::Label(20, 55, 100, 20, "Votre Nom :")
+    This\*txtInput = New UI::TextBox(120, 52, 200, 25, "Developpeur PureBasic")
+    This\*btnGreet = New GreetButton(330, 50, 130, 28, "Saluer !")
+
+    This\*lblSwitch = New UI::Label(20, 100, 200, 20, "Custom Toggle Switch :")
+    This\*switchTurbo = New ModeSwitch(230, 97, 50, 26, #False)
+
+    This\*lblStatus = New UI::Label(20, 180, 440, 30, "Pret. Cliquez sur le bouton.")
+
+    This\*btnGreet\BindControls(This\*txtInput, This\*lblStatus)
+    This\*switchTurbo\BindLabel(This\*lblStatus)
+  EndMethod
+
+  Public Method.b OnClose()
+    ProcedureReturn #True
+  EndMethod
+EndClass
+
+Define *app.UI::Application = New UI::Application()
+Define *mainWin.MainWindow = New MainWindow()
+
+*app\Run()

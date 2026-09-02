@@ -1,0 +1,82 @@
+﻿@Title Prototypes
+
+@Syntax
+
+  @Keyword Prototype.<type> name(<parameter>, [, <parameter> [= DefaultValue]...])
+
+@Description
+
+  For advanced programmers. @Keyword Prototype allows to declare a type which will map
+  a function. It's useful when used with a variable, to do a function pointer (the
+  variable value will be the address the function to call, and can be changed at will).
+  @LineBreak
+  @LineBreak
+  This feature can replace the @@OpenLibrary and 
+  @@CallFunction sequence as it has some 
+  advantages: type checking is done, number of of parameters is validated. 
+  @LineBreak
+  @LineBreak
+  Unlike CallFunction(), it can deal with double, float and quad @ReferenceLink "variables" "variables"
+  without any problem. To get easily the pointer
+  of a library function, use @@GetFunction. 
+  @LineBreak
+  @Keyword Prototype is also used to work with @ReferenceLink "dll" "DLL's".
+  @LineBreak
+  @LineBreak
+  The last parameters can have a default value (need to be a constant expression), so if 
+  these parameters are omitted when the function is called, the default value will be used.
+  @LineBreak
+  @LineBreak
+  By default the function will use the standard call convention (stdcall on x86, or fastcall on x64). If the function pointer will be
+  a C one, the @Keyword PrototypeC variant should be used instead. For more information on library
+  calling standards (cdecl, stdcall, fastcall), see @InternetLink "https://en.wikipedia.org/wiki/Calling_convention" "here".
+  @LineBreak
+  @LineBreak
+  The @ReferenceLink "pseudotypes" "pseudotypes" can be used for the parameters, but not for the returned
+  value.
+  
+@Example 
+
+@Code
+  CompilerIf #PB_Compiler_OS <> #PB_OS_Windows
+    CompilerError "This sample only works on Windows"
+  CompilerEndIf
+
+  Prototype.i ProtoMessageBox(Window.i, Body$, Title$, Flags.i = 0)
+
+  If OpenLibrary(0, "User32.dll")
+   
+    ; 'MsgBox' is a variable with a 'ProtoMessageBox' type
+    ;
+    MsgBox.ProtoMessageBox = GetFunction(0, "MessageBoxW")
+    
+    MsgBox(0, "Hello", "World") ; We don't specify the flags
+  EndIf
+@EndCode
+
+
+@Example With pseudotypes
+
+@Code
+  CompilerIf #PB_Compiler_OS <> #PB_OS_Windows
+    CompilerError "This sample only works on Windows"
+  CompilerEndIf
+
+  ; We use the 'p-ascii' pseudotype for the string parameters, as
+  ; MessageBoxA() is an ascii only function. The compiler will 
+  ; automatically converts the strings to unicode when needed.
+  ;
+  Prototype.i ProtoMessageBoxA(Window.i, Body.p-ascii, Title.p-ascii, Flags.i = 0)
+
+  If OpenLibrary(0, "User32.dll")
+   
+    ; 'MsgBox' is a variable with a 'ProtoMessageBoxA' type
+    ;
+    MsgBox.ProtoMessageBoxA = GetFunction(0, "MessageBoxA")
+    
+    MsgBox(0, "Hello", "World") ; We don't specify the flags
+  EndIf
+@EndCode
+
+
+

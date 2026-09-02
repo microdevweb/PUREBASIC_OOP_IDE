@@ -1,0 +1,267 @@
+﻿@Title Allgemeine Syntax-Regeln
+
+PureBasic hat ein paar Syntax-Regeln eingeführt, welche sich niemals ändern werden. Dies sind: 
+
+@Section Kommentare
+@FormatIf HTML
+<!-- There is a bug somewhere, and i had to do this work around. Mesa -->
+<blockquote>
+  Kommentare werden gekennzeichnet durch ein Semikolon <b><font color="#006666">;</font></b>.
+  Alle nach dem Semikolon eingegebenen Texte, bis zum Ende der gleichen Zeile, werden vom Compiler ignoriert.
+  Kommentare sollten nicht in mehrzeiligem Code eingefügt werden.
+</blockquote>
+@FormatEndIf
+
+  @Example
+  
+@Code  
+  If a = 10 ; Dies ist ein Kommentar zur näheren Erläuterung.
+  
+  StringList$() = "First String " +       ; Kommentar hier
+                  "with a second Line "   ; Kommentar auch hier
+  
+  StringList$() = "Third String " +       ; Kommentar hier ist OK
+  ; Ein Kommentar hier ist nicht zulässig, da der Compiler einen Fehler ausgibt.
+                  "with a second Line "   ; Kommentar hier ist auch OK
+@EndCode
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Schlüsselwörter
+
+  Alle @Bold "Schlüsselwörter" (englisch: "Keywords") werden für grundlegende Dinge innerhalb von PureBasic
+  verwendet, wie das Erstellen von Arrays (Dim) oder Listen (NewList), oder die Kontrolle des Programmablaufs
+  (If : Else : EndIf). Sie werden nicht von Klammern '()' gefolgt, welche typischerweise für PureBasic
+  @Bold "Funktionen" genutzt werden.
+
+  @Example
+  
+@Code  
+    If a = 1      ; If, Else und EndIf sind Schlüsselwörter; während 'a = 1' eine
+      ...         ; Variable ist, die innerhalb eines Ausdrucks verwendet wird.
+    Else
+      ...
+    EndIf
+@EndCode  
+
+  @Bold "Schlüsselwörter" werden regelmäßig in den Kapiteln auf der linken Seite der
+  Index-Seite im Referenz-Handbuch beschrieben.
+  @LineBreak
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Funktionen
+
+  Jeder @Bold "Funktion" muss ein öffnendes rundes Klammerzeichen '(' folgen, oder sie wird nicht als Funktion erkannt
+  (das gilt auch für Funktionen ohne Parameter).
+
+  @Example
+  
+@Code  
+    EventWindow() ; ist eine Funktion.
+    EventWindow   ; ist eine Variable.
+@EndCode
+
+  @Bold "Funktionen" sind regelmäßig Bestandteil der PureBasic "Befehls-Bibliotheken", welche auf der rechten
+  Seite der Index-Seite im Referenz-Handbuch beschrieben werden.
+  @LineBreak
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Konstanten
+
+  Allen Konstanten geht das Hash-Zeichen @Keyword "#" voraus.
+  Sie können nur einmal im Code deklariert werden und behalten immer ihre vordefinierten Werte.
+  (Der Compiler ersetzt beim Kompilieren des Executable alle Konstanten-Namen durch ihre entsprechenden Werte.)
+
+  @Example
+  
+@Code  
+    #Hello = 10 ist eine Konstante.
+    Hello = 10 ist eine Variable.
+@EndCode
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Literale Strings (Zeichenketten)
+
+  Literale Strings werden mit dem Zeichen " deklariert.
+  Escape-Sequenzen werden unterstützt, indem der Literalzeichenfolge das Zeichen ~ vorangestellt wird.
+  Die unterstützten Escape-Sequenzen sind:
+@FixedFont
+  \a: alarm           @Keyword Chr(7)      (Alarm)
+  \b: backspace       @Keyword Chr(8)      (Rücktaste)
+  \f: formfeed        @Keyword Chr(12)     (Seitenvorschub)
+  \n: newline         @Keyword Chr(10)     (Zeilenumbruch)
+  \r: carriage return @Keyword Chr(13)     (Wagenrücklauf)
+  \t: horizontal tab  @Keyword Chr(9)      (Horizontaler Tab)
+  \v: vertical tab    @Keyword Chr(11)     (Vertikaler Tab)
+  \": double quote    @Keyword Chr(34)     (Doppelte Anführungszeichen)
+  \\: backslash       @Keyword Chr(92)     (Rückstrich)
+@EndFixedFont
+  Es gibt zwei spezielle Konstanten für Strings:
+@FixedFont
+  @#Empty$: repräsentiert einen leeren String (exakt das gleiche wie "")
+  @#Null$ : repräsentiert einen Null-String. Dieser kann für API-Funktionen verwendet werden, welche
+           einen Null-Zeiger auf einen String benötigen, oder um einen String wirklich freizugeben.
+@EndFixedFont
+  Achtung: Auf Windows funktioniert \t nicht mit den grafischen Funktionen der @LibraryLink "2DDrawing" "2DDrawing"- und
+  @LibraryLink "VectorDrawing" "VectorDrawing"-Bibliotheken.
+
+  @Example
+@Code  
+  a$ =  "Hello world"  ; Standard-String
+  b$ = ~"Escape\nMe !" ; String mit Escape-Sequenzen
+@EndCode
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Sprungmarken
+
+  Allen Sprungmarken (Labels) muss ein Doppelpunkt @Keyword ":" folgen. Die Namen von Sprungmarken dürfen
+  keine Operatoren (+,-,...) oder Sonderzeichen (ß,ä,ö,ü,...) enthalten. Innerhalb einer
+  @ReferenceLink "procedures" "procedure" definierte Sprungmarken sind nur in dieser Prozedur verfügbar.
+
+  @Example
+  
+@Code  
+    Ich_bin_eine_Sprungmarke:
+@EndCode 
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Module
+
+  @ReferenceLink "Module" "Module" verwenden einen :: (doppelten Doppelpunkt), wenn auf einen Modulnamen verwiesen wird.
+  Achten Sie darauf, diese nicht mit dem einfachen Doppelpunkt zu verwechseln, der von Sprungmarken verwendet wird.
+
+  @Example
+  
+@Code
+  Debug CarModule::NbCars
+@EndCode
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Ausdrücke
+
+  Ein Ausdruck ist etwas, das ausgewertet werden kann.
+  Ein Ausdruck kann beliebige Variablen, Konstanten oder Funktionen desselben Typs mischen.
+  Wenn Sie Zahlen in einem Ausdruck verwenden, können Sie ihnen das @Keyword "$" Symbol voranstellen,
+  um eine Hexadezimalzahl anzugeben, oder mit dem @Keyword "%" Symbol, um eine Binärzahl anzugeben.
+  Ohne eines der beiden Zeichen wird die Zahl als Dezimalzahl behandelt.
+  Strings müssen in gerade doppelte Anführungszeichen eingeschlossen werden.
+
+  @Example gültige Ausdrücke:
+  
+@Code  
+  a = a + 1 + (12 * 3)
+
+  a = a + WindowHeight(#Window) + b/2 + #MyConstant
+
+  If a <> 12 + 2
+    b + 2 >= c + 3
+  EndIf
+
+  a$ = b$ + "dies ist ein String Wert" + c$
+
+  Foo = Foo + $69 / %1001  ; Nutzung hexadezimaler und binärer Zahlen
+@EndCode  
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Verketten von Befehlen
+
+  Eine beliebige Anzahl an Befehlen kann auf derselben Zeile mittels der : Option aneinandergereiht werden.
+
+  @Example
+  
+@Code 
+  If IsCrazy = 0 : MessageRequester("Info", "Not Crazy") : Else : MessageRequester("Info", "Crazy") : EndIf
+@EndCode  
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Zeilenfortsetzung
+
+  Lange Ausdrücke können auf mehrere Zeilen aufgeteilt werden.
+  Eine aufgesplittete Zeile muss mit einem der folgenden Operatoren enden: Plus (+), Komma (,),
+  oder (|), And, Or, Xor.
+  @LineBreak
+  Kommentare sollten nicht in mehrzeiligem Code eingefügt werden.
+
+  @Example
+
+@Code  
+  Text$ = "Very very very very long text" + #LF$ +
+          "another long text" + #LF$ +
+          " and the end of the long text"
+
+  MessageRequester("Hello this is a very long title",
+                   "And a very long message, so we can use the multiline" + #LF$ + Text$,
+                   #PB_MessageRequester_Ok)
+    
+  StringList$() = "First String " +       ; Kommentar hier
+                  "with a second Line "   ; Kommentar auch hier
+				  
+  StringList$() = "Third String " +       ; Kommentar hier ist OK
+  ; Ein Kommentar hier ist nicht zulässig, da der Compiler einen Fehler ausgibt.
+                  "with a second Line "   ; Kommentar hier ist auch OK
+@EndCode  
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Typische Begriffe in der Anleitung
+
+  Begriffe, die in dieser Anleitung benutzt werden:
+
+  @Indent
+    <variable> : eine Basic @ReferenceLink "variables" "Variable". @LineBreak
+    <expression> : ein Ausdruck, wie oben beschrieben. @LineBreak
+    <constant> : eine numerische Konstante. @LineBreak
+    <label> : ein Programmlabel (Sprungmarke). @LineBreak
+    <type> : jeder Typ, (Standard oder in einer Struktur). @LineBreak
+  @EndIndent
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf
+
+@Section Sonstiges
+
+  - In dieser Anleitung sind alle Themen in alphabetischer Reihenfolge aufgeführt, um mögliche Suchzeiten zu verkürzen.
+  @LineBreak
+  @LineBreak
+  - @Bold "Rückgabewerte" von Befehlen sind immer vom Typ @ReferenceLink "variables" "Integer", wenn kein anderer Typ
+    auf der Syntax-Zeile der jeweiligen Befehlsbeschreibung angegeben ist.
+  @LineBreak
+  - In der PureBasic-Dokumentation werden die Begriffe "Befehle" und "Funktionen" synonym verwendet,
+    unabhängig davon, ob die Funktion einen Wert zurückgibt oder nicht.
+    Um zu erfahren, welcher Wert von einem bestimmten Befehl oder einer bestimmten Funktion zurückgegeben wird,
+  schauen Sie in die Beschreibung in der Befehls-Dokumentation.
+
+  @LineBreak
+
+@FormatIf HTML
+<br><hr><br>
+@FormatEndIf

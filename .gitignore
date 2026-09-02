@@ -1,0 +1,28 @@
+﻿# ============================================================================
+# .gitignore for PureBasic OOP IDE
+# ============================================================================
+
+# PureBasic Compiler & Intermediate Generated Files
+*.tmp
+*.temp
+*Generated.pb
+*_generated.pb
+*.pb.map
+debug_ide.log
+
+# IDE Settings & Backups
+ide_settings.prefs
+*.prefs.bak
+*.bak
+
+# Build Directory Intermediate Files
+ide/PureBasicIDE/Build/DialogCompiler.exe
+ide/PureBasicIDE/Build/makebuildinfo.exe
+ide/PureBasicIDE/Build/maketheme.exe
+ide/PureBasicIDE/Build/*.pb
+ide/PureBasicIDE/Build/*.zip
+
+# Example test binaries
+examples/*/*.exe
+examples/*/*_generated.pb
+examples/*/*.pb.map

@@ -1,0 +1,18 @@
+﻿XIncludeFile "Shape.pbo"
+
+Namespace Math::Geometry
+
+  Class Circle Extends Shape
+    Protected rayon.d
+
+    Public Method Init(nom_p.s, r.d)
+      Super::Init(nom_p)
+      This\rayon = r
+    EndMethod
+
+    Public Method.d CalculerAire()
+      ProcedureReturn #PI * This\rayon * This\rayon
+    EndMethod
+  EndClass
+
+EndNamespace

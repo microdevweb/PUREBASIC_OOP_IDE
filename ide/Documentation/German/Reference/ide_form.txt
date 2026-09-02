@@ -1,0 +1,157 @@
+﻿@Title Integrierter Form-Designer
+
+  Die PureBasic IDE hat einen sehr leistungsfähigen integrierten Form-Designer (auch
+  "Formular-Designer"), welcher einfach die Gestaltung von Fenstern und das Anordnen von
+  Gadgets darauf ermöglicht. Er unterstützt nahezu alle nativen PureBasic
+  @LibraryLink "gadget" "Gadgets", @LibraryLink "menu" "Menü" und sogar
+  @LibraryLink "statusbar" "Statusleisten". Eine Form-Datei (auch "Formular-Datei") ist eine
+  reguläre PureBasic-Datei, welche somit einfach verändert werden kann, ohne den Form-Designer
+  zu öffnen. Der Code-Parser ist nicht der Gleiche, wie er vom Compiler verwendet wird,
+  und unterstützt daher nicht alle Funktionen - wenn Sie daher manuelle Änderungen an
+  einer Form-Datei vornehmen, müssen diese grundlegend bleiben.
+
+@Section Inhalt des "Form" Menüs:
+
+@Image ide_menu_form.png
+
+@Bold "Neues Formular"
+@LineBreak
+  Erstellt ein neues leeres Formular. Dies bringt automatisch die Form-Werkzeugleiste in den Vordergrund.
+@LineBreak
+@LineBreak
+
+@Bold "Ansicht umschalten (Code/Design)"
+@LineBreak
+  Ändert die Formular-Ansicht, wechselt vom Design-Modus in die Code-Ansicht. Ein Formular wird aus
+  Quellcode erstellt - wenn eine Änderung direkt in der Code-Ansicht erfolgt, so wird diese auch
+  visuell sichtbar.
+@LineBreak
+@LineBreak
+
+@Bold "Objekt duplizieren"
+@LineBreak
+  Dupliziert das aktuell ausgewählte Objekt.
+@LineBreak
+@LineBreak
+
+@Bold "Bild-Manager"
+@LineBreak
+  @Image ide_form_imagemanager.png
+@LineBreak
+  Zeigt alle Bilder an, die aktuell vom Formular verwendet werden. Das Bild und sein Pfad können hier
+  einfach verändert werden. 
+
+
+@Section Form-Designleiste
+
+  @Image ide_form_designpanel.png
+
+  Diese Werkzeugleiste listet alle verfügbaren Gadgets auf. Wählen Sie eins aus, und zeichnen
+  Sie direkt auf dem Formular die benötigte Größe. Wenn ein Gadget auf dem Formular ausgewählt
+  wird, dann werden seine Eigenschaften auf dieser Leiste angezeigt und können auch hier
+  verändert werden.
+
+
+@Section Erweiterte Optionen der Codegenerierung
+
+@Bold "Explizite IDs über Variable (Name=Nummer)"
+@LineBreak
+  Um feste numerische IDs für Fenster oder Gadgets zu erzwingen, geben Sie im Property "Variable"
+  folgendes ein: Name=Nummer (z.B. ID13310=13310 oder Dlg=133).
+  Der Form-Designer generiert dann eine explizite Zuweisung in der Enumeration:
+@LineBreak
+@Code
+  Enumeration FormGadget
+    #ID13310 = 13310
+  EndEnumeration
+@EndCode
+@LineBreak
+  Hinweis: Wenn kein '=' verwendet wird, bleibt das Verhalten unverändert (abwärtskompatibel).
+@LineBreak
+@LineBreak
+
+@Bold "Benutzerdefiniertes Parent-Fenster (=Ausdruck)"
+@LineBreak
+  Der Wert des Fensters "Parent" kann als direkter Ausdruck angegeben werden, indem man ihm ein '=' voranstellt.
+  In diesem Fall wird der Ausdruck im generierten Code direkt übergeben (kein @@WindowID Wrapper).
+@LineBreak
+@LineBreak
+
+@Bold "Custom Flags"
+@LineBreak
+  Das Fenster-Property "Custom Flags" erlaubt zusätzliche Flags, getrennt durch '|'.
+  Diese Flags werden an die generierten OpenWindow()-Flags angehängt.
+  Custom Flags beeinflussen nicht die visuelle Darstellung im Form-Designer.
+@LineBreak
+@LineBreak
+
+@Bold "FrameGadget als Container (#PB_Frame_Container)"
+@LineBreak
+  FrameGadget unterstützt das Flag #PB_Frame_Container. Wenn es gesetzt ist, wird das FrameGadget
+  als Container behandelt und kann als Parent für andere Gadgets verwendet werden.
+
+
+@Section Verwendung des Form-Designers in echten Projekten
+
+  Der Form-Designer wurde erschaffen, um modulare Formulare und deren einfache Wartung zu ermöglichen.
+  Jedes Formular muss seine eigene Datei haben. Es können sich keine zwei Formulare in der gleichen
+  Datei befinden (mit anderen Worten, es sollten sich niemals zwei @@OpenWindow in der gleichen Datei
+  befinden). Jedem Gadget kann eine Ereignis-Prozedur zugewiesen werden, welche automatisch in der
+  Ereignisschleife behandelt werden. Die Ereignis-Prozeduren müssen irgendwo im Quellcode definiert
+  werden. Jede Formular-Datei sollte mit der '.pbf' Endung benannt werden, damit sie von der IDE
+  richtig geöffnet wird. Formular-Dateien können auch zu einem @ReferenceLink "ide_projects" "Projekt"
+  hinzugefügt werden.
+@LineBreak
+@LineBreak
+  Um zum Beispiel ein Programm zu erstellen, welches zwei Fenster besitzt, müssen wir zwei Formular-Dateien
+  und eine Haupt-Datei erstellen. Die Verzeichnisstruktur könnte wie folgt aussehen:
+@FixedFont  
+  Main.pb        ; Die Haupt-PureBasic-Datei, welche die zwei Formular-Dateien einbindet und die Ereignisse definiert.
+  MainWindow.pbf ; Das Hauptfenster.
+  DateWindow.pbf ; Ein anderes Fenster.
+@EndFixedFont
+  Wenn wir davon ausgehen, dass MainWindow.pbf über zwei @Link "gadget/buttongadget" "Tasten" ('OK'
+  und 'Cancel') verfügt und DateWindow.pbf ein @Link "gadget/calendargadget" "CalendarGadget" besitzt,
+  dann würde die Haupt-Datei wie folgt aussehen (die Haupt-Datei wird nicht über den Form-Designer
+  verwaltet und muss manuell geschrieben werden):
+  
+@Code  
+  XIncludeFile "MainWindow.pbf" ; Einbinden der ersten Fenster-Definition
+  XIncludeFile "DateWindow.pbf" ; Einbinden der zweiten Fenster-Definition
+  
+  OpenMainWindow() ; Öffnet das erste Fenster. Dieser Prozedurname ist immer 'Open' gefolgt vom Fensternamen.
+  OpenDateWindow() ; Öffnet das zweite Fenster.
+  
+  ; Die Ereignis-Prozedur, wie diese in der Eigenschaft 'Ereignis-Prozedur' jedes Gadgets definiert wurde.
+  Procedure OkButtonEvent(EventType)
+    Debug "OkButton event"
+  EndProcedure
+  
+  Procedure CancelButtonEvent(EventType)
+    Debug "CancelButton event"
+  EndProcedure
+  
+  Procedure TrainCalendarEvent(EventType)
+    Debug "TrainCalendar event"
+  EndProcedure
+  
+  ; Die übliche Haupt-Ereignisschleife, die einzige Änderung ist der automatische Aufruf der
+  ; für jedes Fenster generierten Ereignis-Prozedur.
+  Repeat
+    Event = WaitWindowEvent()
+    
+    Select EventWindow()
+      Case MainWindow
+        MainWindow_Events(Event) ; This procedure name is always window name followed by '_Events'
+        
+      Case DateWindow
+        DateWindow_Events(Event)
+        
+    EndSelect
+    
+  Until Event = #PB_Event_CloseWindow ; Quit on any window close
+@EndCode
+
+  Wie Sie sehen, lassen sich visuell gestaltete Formulare einfach in ein Programm integrieren. Es ist auch
+  weiterhin möglich, Fenster manuell zu erstellen oder beides zu kombinieren. Um die volle Kontrolle über
+  den generierten Code zu haben, wechseln Sie einfach in den Code-Modus und überprüfen diesen.

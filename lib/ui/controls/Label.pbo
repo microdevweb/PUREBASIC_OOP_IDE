@@ -1,0 +1,30 @@
+; ============================================================================
+; PureBasic OOP GUI Framework - Label.pbo
+; Standard Text / Label wrapper
+; ============================================================================
+
+XIncludeFile "../Gadget.pbo"
+XIncludeFile "../Application.pbo"
+
+Namespace UI {
+
+  Class Label Extends Gadget {
+
+    Public Method Init(x_p.i, y_p.i, w_p.i = 150, h_p.i = 20, text_p.s = "", flags_p.i = 0) {
+      This\x = x_p : This\y = y_p : This\width = w_p : This\height = h_p
+      This\isVisible = #True : This\isEnabled = #True
+      This\id = TextGadget(#PB_Any, x_p, y_p, w_p, h_p, text_p, flags_p)
+      If (This\id) {
+        UI::RegisterGadget(This\id, This)
+      }
+    }
+
+    Public Method Free() {
+      If (This\id) {
+        UI::UnregisterGadget(This\id)
+        Super::Free()
+      }
+    }
+  }
+
+}

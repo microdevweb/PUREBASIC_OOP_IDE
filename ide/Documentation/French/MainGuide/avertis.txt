@@ -1,0 +1,30 @@
+﻿@Title Licence et Conditions
+
+Ce programme est proposé sans aucunes garanties. Fantaisie Software ne peut en aucun cas 
+être tenu responsable des dégâts occasionnés par PureBasic. Vous utilisez ce logiciel à 
+vos risques et périls. @LineBreak
+@LineBreak
+La version de démonstration de PureBasic peut être distribuée librement tant que le contenu 
+de l'archive reste intacte. Il n'est permis de modifier, changer l'organisation de l'archive 
+sans la permission écrite de Fantaisie Software. @LineBreak
+@LineBreak
+La version complète de PureBasic ne doit en aucun cas être cédée à une personne autre 
+que l'acheteur du logiciel. @LineBreak
+@LineBreak
+Fantaisie Software détient tous les droits sur PureBasic et ses composants. Aucun module ne 
+peut être utilisé dans une autre application sans l'autorisation de Fantaisie Software. 
+Il est interdit d'encapsuler ou d'utiliser directement les commandes de haut niveau de 
+PureBasic dans un autre langage de programmation que ce soit sous forme de bibliothèques 
+dynamiques (DLL) ou statiques. Cette règle ne s'applique pas pour les utilisateurs possédant 
+une licence de PureBasic. @LineBreak
+@LineBreak
+PureBasic utilise le composant d'édition Scintilla et sa licence peut être consultée @MainGuideLink "license_scintilla" "ici".@LineBreak
+@LineBreak
+PureBasic utilise le compilateur GCC et sa licence peut être consultée @MainGuideLink "license_gpl3" "ici" et @MainGuideLink "license_gcc_exception" "là" @LineBreak
+@LineBreak
+PureBasic utilise l'assembleur plat (flat) FASM et sa licence peut être consultée  @MainGuideLink "license_fasm" "ici" @LineBreak
+@LineBreak
+PureBasic utilise la chaîne d'outils (toolchain) PellesC et sa licence peut être consultée @MainGuideLink "license_pellesc" "ici" @LineBreak
+@LineBreak
+Les bibliothèques intégrées PureBasic utilisent des composants opensources, les licences peuvent être consultées @ReferenceLink "license_application" "ici" et @ReferenceLink "license_engine3d" "là" @LineBreak
+@LineBreak

@@ -1,0 +1,173 @@
+﻿;
+;     Geolocation library documentation
+;
+;      (c) 2014 - Fantaisie Software
+;
+
+@Library Geolocation
+
+@Overview
+  SpiderBasic provides an easy access to geolocation data. This can use either a real GPS or any
+  other geolocation approximation methods (like internet connection, Wi-Fi position etc.).
+
+@CommandList
+
+@ExampleFile All Geolocation.sb
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function StartGeolocation([Timeout [, HighAccuracy]])
+
+@Description
+  Starts geolocation data monitoring.
+
+@OptionalParameter "Timeout"
+  The maximum timeout (in milliseconds) to have valid geolocation data. If no data can be updated
+  during this period, all geolocation functions will return the error value. This can be useful
+  where up-to-date geolocation information is mandatory (e.g. for a car navigation application).
+  If not specified, no timeout is set.
+
+@OptionalParameter "HighAccuracy"
+  If set to @#True, enable the use of real GPS if available, and fallback to Wi-Fi or other less
+  accurate methods if not found. Default value is @#False, which only use Wi-Fi or less accurate methods for
+  geolocation.
+
+@NoReturnValue
+
+@Remark
+  When Safari is used to access the app (on OSX or iOS), it requires the web app to be hosted
+  using HTTPS protocol (geolocation is considered as sensitive information). If not, it won't work.
+  
+
+@SeeAlso
+  @@StopGeolocation, @@AccelerometerY, @@AccelerometerZ, @@AccelerometerTime
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function StopGeolocation()
+
+@Description
+  Stops geolocation data monitoring.
+  
+@NoParameters
+
+@NoReturnValue
+
+@SeeAlso
+  @@StartGeolocation
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result.d = GeolocationLatitude()
+
+@Description
+  Returns the current latitude (in decimal degrees). @@StartGeolocation has to be called successfully before
+  using this command.
+  
+@NoParameters
+
+@ReturnValue
+  Returns the current latitude (in decimal degrees), or -1 if an error has occured.
+
+@SeeAlso
+  @@StartGeolocation, @@GeolocationLongitude, @@GeolocationAltitude, @@GeolocationSpeed, @@GeolocationHeading, @@GeolocationTime
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result.d = GeolocationLongitude()
+
+@Description
+  Returns the current longitude (in decimal degrees). @@StartGeolocation has to be called successfully before
+  using this command.
+  
+@NoParameters
+
+@ReturnValue
+  Returns the current longitude (in decimal degrees), or -1 if an error has occured.
+
+@SeeAlso
+  @@StartGeolocation, @@GeolocationLatitude, @@GeolocationAltitude, @@GeolocationSpeed, @@GeolocationHeading, @@GeolocationTime
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result.d = GeolocationAltitude()
+
+@Description
+  Returns the current altitude (in meters). @@StartGeolocation has to be called successfully before
+  using this command.
+  
+@NoParameters
+
+@ReturnValue
+  Returns the current altitude (in meters), or -1 if an error has occured.
+
+@SeeAlso
+  @@StartGeolocation, @@GeolocationLatitude, @@GeolocationLongitude, @@GeolocationSpeed, @@GeolocationHeading, @@GeolocationTime
+
+@SupportedOS
+
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result.d = GeolocationSpeed()
+
+@Description
+  Returns the current ground speed (in meters per second). @@StartGeolocation has to be called successfully before
+  using this command.
+  
+@NoParameters
+
+@ReturnValue
+  Returns the current ground speed (in meters per second), or -1 if an error has occured.
+
+@SeeAlso
+  @@StartGeolocation, @@GeolocationLatitude, @@GeolocationLongitude, @@GeolocationAltitude, @@GeolocationHeading, @@GeolocationTime
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result.d = GeolocationHeading()
+
+@Description
+  Returns the direction of the travel (in degrees). @@StartGeolocation has to be called successfully before
+  using this command.
+  
+@NoParameters
+
+@ReturnValue
+  Returns the direction of the travel (in degrees) or -1 if an error has occured.
+
+@SeeAlso
+  @@StartGeolocation, @@GeolocationLatitude, @@GeolocationLongitude, @@GeolocationAltitude, @@GeolocationSpeed, @@GeolocationTime
+
+@SupportedOS
+
+;--------------------------------------------------------------------------------------------------------
+
+@Function Result = GeolocationTime()
+
+@Description
+  Returns the time (in milliseconds) when the current geolocation data has been fetched.
+  It can be used to ensure the time between two different fetches is not too wide. 
+  @@StartGeolocation has to be called successfully before using this command.
+  
+@NoParameters
+
+@ReturnValue
+  Returns the time (in milliseconds) when the current geolocation data has been fetched.
+
+@SeeAlso
+  @@StartGeolocation, @@GeolocationLatitude, @@GeolocationLongitude, @@GeolocationAltitude, @@GeolocationSpeed, @@GeolocationHeading
+
+@SupportedOS

@@ -1,0 +1,285 @@
+﻿@Title History
+
+@Section 12th January 2026 : Version 3.20
+
+- Added: Fully reworked the VectorDrawing library to be much faster than before @LineBreak
+- Added: PdfVectorOutput(), ExportPdf(), ExportPdfMemory() to easily create PDF @LineBreak
+- Added: SvgVectorOutput(), ExportSvg(), ExportSvgString() to easily create SVG @LineBreak
+- Added: RemoveMobileItem() and ClearMobileItems() for ListMobile() @LineBreak
+- Added: MobileTheme() to dynamically switch the mobile libary theme from light to dark @LineBreak
+- Added: IsDarkMode() to detect if the device is default theme is dark or bright. @LineBreak
+- Added: #PB_Event_ThemeChanged event to detect switch between dark and bright mode. @LineBreak
+- Added: CenterX/Y param for VectorSourceCircularGradient() @LineBreak
+- Added: ClipPath(), FlipCoordinatesX(), FlipCoordinatesY(), VectorSourceImage(), IsInsideStroke() @LineBreak
+- Added: #PB_Path_Winding mode for FillPath() and oddeven as well @LineBreak
+@LineBreak
+- Changed: Changed the flag parameter for ExportFile() to an optional filename. @LineBreak
+@LineBreak
+- Removed: PathBoundsX(), PathBoundsY(), PathBoundsWidth(), PathBoundsHeight() @LineBreak
+
+
+@Section 29th July 2025 : Version 3.10
+
+- Added: Android app creation support for Linux and MacOS ! @LineBreak
+- Added: New local notification library ! @LineBreak
+- Added: HeaderSection/EndHeaderSection to easily custozime the HTML </head> tag @LineBreak
+- Added: HTTPInfo() to get more info when using HTTPRequest() @LineBreak
+- Added: HTTPTimeout() to control the timeout of HTTPRequest() @LineBreak
+- Added: CopyMemory() @LineBreak
+- Added: StringByteLength() @LineBreak
+- Added: #PB_EventType_PageLoaded event support for WebGadget() @LineBreak
+- Added: #PB_EventType_Resize support for ContainerGadget(), ScrollAreaGadget(), Canvas() and PanelGadget() @LineBreak
+- Added: #PB_Image_Base64 flag for LoadImage() to load image encoded in Base64 @LineBreak
+@LineBreak
+- Updated: Cordova android 14 and Android SDK 35
+- Updated: the Date library doc as it already supports date beyond 2038. @LineBreak
+@LineBreak
+- Fixed: A few compiler and library bugs @LineBreak
+
+@Section 12th February 2025 : Version 3.02
+
+- Fixed: A few compiler and library bugs @LineBreak
+
+@Section 13th September 2024 : Version 3.01
+
+- Added: Android 34 ABI support to be able to publish on PlayStore @LineBreak
+- Added: Disabled code formatting in EnableJS/DisableJS block so JavaScript can be written directly in it @LineBreak
+- Added: Ubuntu 24.04 build @LineBreak
+- Added: Date library now supports dates between 1601 to 9999 @LineBreak
+- Added: Allowed wide date range for DateGadget() and CalendarGadget (from 1601 to 9999) @LineBreak
+
+
+@Section 26th June 2024 : Version 3.00
+
+- Added: Brand new Mobile UI library to quickly build native looking mobile UI ! @LineBreak
+- Added: Brand new WebView tool for the IDE to display the app result directly inside the IDE ! @LineBreak
+- Added: Runtime debugger support for all libraries, with IDE integration to ease error spotting. @LineBreak
+- Added: Background color selector in CreateApp for Android. @LineBreak
+- Added: 'DPI Aware' flag in 'Compiler Options' to have DPI aware applications @LineBreak
+- Added: --rebuildappdir commandline option to easily rebuild an app (created with --keepappdir) @LineBreak
+- Added: SpiderBasicCLI.cmd to have an easy to use commandline (Windows) @LineBreak
+- Added: IsWebSocket(). @LineBreak
+- Added: AddTimer(), RemoveTimer() to have window independant timers. @LineBreak
+- Added: SplashScreenControl() to handle when closing the splashscreen. @LineBreak
+ @LineBreak
+- Fixed: Some compiler and library bugs @LineBreak
+
+
+@Section 13th December 2023 : Version 2.51
+
+- Fixed: some compiler and library bugs
+
+
+@Section 9th June 2023 : Version 2.50
+
+- Added: Realtime sprite and screen shaders with AddSpriteShader(), SpriteShaderAttribute(), RemoveSpriteShader() @LineBreak
+- Added: AddScreenShader(), ScreenShaderAttribute(), RemoveScreenShader() @LineBreak
+- Added: FullScreen() @LineBreak
+- Added: #PB_Shader_Blur, #PB_Shader_Noise, #PB_Shader_Pixelate, #PB_Shader_Bevel, #PB_Shader_BulgePinch @LineBreak
+- Added: #PB_Shader_Reflection, #PB_Shader_Adjustment @LineBreak
+- Added: WindowOpacity() @LineBreak
+- Added: #PB_Window_NoMove flag for OpenWindow() to disable user window moving (with mouse or touch) @LineBreak
+- Added: #PB_Compiler_App to detect the created app type: #PB_App_Android, #PB_App_IOS or #PB_App_Web @LineBreak
+- Added: --keepappdir on commandline and 'Create App' window to keep the cordova app directory @LineBreak
+@LineBreak
+- Updated: Cordova to latest 11 version @LineBreak
+- Updated: Android API to 33 @LineBreak
+- Updated: PixiJS to 5.3.12 @LineBreak
+- Updated: InnoSetup on Windows to be able to install SpiderBasic without admin rights. @LineBreak
+ @LineBreak
+- Fixed: Some compiler and library bugs @LineBreak
+
+
+@Section 28th November 2022 : Version 2.40
+
+- Added: WebSocket library: OpenWebSocket(), CloseWebSocket(), SendWebSocketData(), SendWebSocketString() @LineBreak
+- Added: Packer library: CompressMemory(), UncompressMemory(), CompressString(), UncompressString() @LineBreak
+- Added: Clipboard library: SetClipboardText() @LineBreak
+- Added: DesktopResolutionX(), DesktopResolutionY(), DesktopScaledX(), DesktopScaledY(), DesktopUnscaledX(), DesktopUnscaledY() @LineBreak
+- Added: Event(), EventString(), EventWebSocket() @LineBreak
+- Added: FormatNumber() @LineBreak
+- Added: Base64Encoder(), Base64Decoder(), Base64EncoderBuffer(), Base64DecoderBuffer() @LineBreak
+- Added: #PB_EventType_Focus and #PB_EventType_LostFocus to TreeGadget() @LineBreak
+- Added: #PB_Tree_Expanded support to SetGadgetAttribute() for TreeGadget() to quickly expand/collapse all nodes @LineBreak
+- Added: HighAccuracy parameter to StartGeolocation() to use the real GPS if available. @LineBreak
+- Added: #PB_ListIcon_GridLines support @LineBreak
+- Added: a timestamp to the index.html to avoid caching problem @LineBreak
+- Added: native OS X arm64 version @LineBreak
+- Added: all IDE improvements from PureBasic @LineBreak
+ @LineBreak
+- Updated: android framework to android-32 to be able to publish app on Google PlayStore @LineBreak
+- Updated: the application license file @LineBreak
+ @LineBreak
+- Changed: the behaviour of accessing a map element, it now always creates a new element if not found. @LineBreak
+ @LineBreak
+- Removed: the "Geolocation" checkbox in "Create App" window as it is no more needed @LineBreak
+
+
+@Section 18th May 2020 : Version 2.31
+
+- Fixed: some compiler and library bugs
+
+
+@Section 22th November 2019 : Version 2.30
+
+- Added: MessageRequester(), InputRequester() @LineBreak
+- Added: DeviceAlwaysOn(), DeviceBrightness() @LineBreak
+- Added: #PB_Window_AllowSelection flag to OpenWindow() to allow to select gadget text for copy/paste @LineBreak
+- Added: LoadScript() to load external scripts for use in the program (JS, CSS) @LineBreak
+- Added: #PB_Canvas_Container flag to CanvasGadget() @LineBreak
+- Added: CloseDebugOutput() to close the debug output window @LineBreak
+- Added: SDK example for LibraryMaker to create your own user libraries @LineBreak
+- Added: UserLibraries support (directory SpiderBasic/Libraries/UserLibraries)  @LineBreak
+- Added: #PB_Font_Italic and #PB_Font_Bold support for LoadFont() @LineBreak
+ @LineBreak
+- Updated: GetWindowTitle() now works with windows with #PB_Window_BorderLess flag @LineBreak
+- Updated: android framework to android-29 to be able to publish app on Google PlayStore @LineBreak
+
+@Section 13th September 2019 : Version 2.22
+
+- Added: verbose (-vb, --verbose) switch to the commandline compiler to have all cordova outputs and help debugging @LineBreak
+- Added: new button in the iOS app window, to check if OS X is properly set up (it will also update cordova if a new version is available) @LineBreak
+@LineBreak
+- Fixed: some compiler and library bugs
+
+@Section 4th january 2019 : Version 2.21
+
+- Added: New Android SDK support to be able to publish app on Google Play @LineBreak
+- Added: #PB_Window_Background support to Dialog library @LineBreak
+@LineBreak
+- Fixed: some compiler and library bugs
+
+@Section 22th october 2017 : Version 2.20
+
+- Added: Database library, based on sqlite (client side) @LineBreak
+- Added: #PB_LocalStorage support for CreateFile(), OpenFile() and ReadFile() to easily create persistent files @LineBreak
+- Added: #PB_HTTP_Put, #PB_HTTP_Patch, #PB_HTTP_Delete support for HttpRequest() @LineBreak
+- Added: ExportFileMemory() to return the full file content as a memory buffer @LineBreak
+- Added: 'End' keyword support to quit an application @LineBreak
+@LineBreak
+- Fixed: some compiler and library bugs
+
+@Section 4th july 2017 : Version 2.10
+
+- Added: Accelerometer library @LineBreak
+- Added: Geolocation library @LineBreak
+- Added: InAppPurchase support for iOS @LineBreak
+- Added: BatteryLevel(), SystemInfo(), VibrateDevice() @LineBreak
+- Added: #PB_String_PlaceHolder flag to StringGadget() to set a placeholder at creation @LineBreak
+- Added: #PB_Event_SizeDesktop event to monitor a desktop resize without having a background window @LineBreak
+- Added: ResizeScreen() to resize an already created screen @LineBreak
+- Added: Cordova command can be executed via Import/EndImport  @LineBreak
+- Added: Android app is immediately run on the device once deployed @LineBreak
+@LineBreak
+- Changed: reworked the InAppPurchase library @LineBreak
+- Changed: switched from crosswalk to cordova on Windows for Android. NOTE: cordova requires internet connection to build an app. @LineBreak
+@LineBreak
+- Optimized: Android app size is now much smaller (1,5 MB instead of 20 MB) @LineBreak
+@LineBreak
+- Removed: TouchRadiusX() and TouchRadiusY() as it was only working on FireFox @LineBreak
+@LineBreak
+- Fixed: some compiler and library bugs
+
+@Section 5th december 2016 : Version 2.00
+
+- Added: Android App support (Windows version only) @LineBreak
+- Added: iOS App creation support (MacOS version only) @LineBreak
+- Added: InAppPurchase library (Android only) @LineBreak
+- Added: new 'Create App' window in the IDE to ease the app creation @LineBreak
+- Added: app name field for WebApp @LineBreak
+- Added: default browser choice in Preferences -> Compiler @LineBreak
+- Added: too old browser detection when launching an app @LineBreak
+- Added: a lot of switches to the commandline compiler to support mobile app @LineBreak
+- Added: custom headers support to HttpRequest() @LineBreak
+- Added: #PB_Text_VerticalCenter flag to TextGadget() @LineBreak
+- Added: touch support to window dragging and resizing @LineBreak
+- Added: IsScreenActive() @LineBreak
+@LineBreak
+- Optimized: reduced greatly DOJO footprint for much faster app loading @LineBreak
+- Optimized: minified most of the spiderlibraries dependencies to reduce footprint @LineBreak
+@LineBreak
+- Updated: DOJO to latest 1.11.2 version @LineBreak
+@LineBreak
+- Changed: Moved the old 'Export' panel to new 'Create App' window @LineBreak
+- Changed: OSX compiler is now bundled in the main SpiderBasic app for easier installation @LineBreak
+- Changed: New dmg for OSX for drag'n'drop install to support Sierra @LineBreak
+- Changed: Examples on Windows are now installed in 'common app' folder to avoid permission issues @LineBreak
+@LineBreak
+- Fixed: Many bug fixes
+
+@Section 23th august 2016 : Version 1.40
+
+- Added: New VectorDrawing library @LineBreak
+- Added: New Touchscreen library @LineBreak
+@LineBreak
+- Updated: dgrid component to 1.1.0 @LineBreak
+@LineBreak
+- Fixed: Many bug fixes
+
+@Section 23th march 2016 : Version 1.30
+
+- Added: DisableWindow(), AddKeyboardShortcut(), RemoveKeyboardShortcut() @LineBreak
+- Added: OpenFile(), GetWindowColor(), SetWindowColor() @LineBreak
+- Added: CountProgramParameters() and ProgramParameter() to get URL params @LineBreak
+- Added: #PB_Mouse_Locked and #PB_Mouse_Unlocked support for InitMouse() @LineBreak
+- Added: UseGoogleDrive() to access google drive remote files in read and write mode @LineBreak
+- Added: #PB_GoogleDriveFile support to ReadFile(), CreateFile() and OpenFileRequester() @LineBreak
+- Added: flag parameter to ExportFile() to support GoogleDrive @LineBreak
+- Added: #PB_Canvas_Transparent flag for CanvasGadget() to have transparent canvas. @LineBreak
+@LineBreak
+- Changed: Added a callback parameter to CreateFile() @LineBreak
+- Changed: in the IDE, compiler option server port now needs the server address as well. @LineBreak
+- Changed: NextSelectedFilename() replaced by NextSelectedFile() and SelectedFilename()/SelectedFileID() @LineBreak
+@LineBreak
+- Updated: SoundJS to 0.6.2 and PixiJS to 3.0.10 @LineBreak
+@LineBreak
+- Fixed: various bug fixes
+
+@Section 9th february 2016 : Version 1.20
+
+- Added: new Cipher library with AES, MD5 and SHA1/2/3 support @LineBreak
+- Added: new File library, with read and write support, including streaming read @LineBreak
+- Added: AllocateMemory(), ReAllocateMemory(), MemorySize(), CompareMemory() and FreeMemory() @LineBreak
+- Added: PeekB(), PeekA(), PeekC(), PeekU(), PeekW(), PeekL(), PeekF(), PeekS() @LineBreak
+         PokeB(), PokeA(), PokeC(), PokeU(), PokeW(), PokeL(), PokeF(), PokeS() @LineBreak
+- Added: ParseDate() @LineBreak
+@LineBreak
+- Fixed: various bug fixes
+
+@Section 21th december 2015 : Version 1.10
+
+- Added: powerful dialog lib to easily create auto-resizable form with XML definition @LineBreak
+- Added: 'flat' skin for gadget and window manager @LineBreak
+- Added: DataSection support, with Read/Restore @LineBreak
+- Added: DrawAlphaImage() @LineBreak
+- Added: escaped string support with ~"" syntax @LineBreak
+- Added: SetGadgetFont() support @LineBreak
+- Added: theme selectors in "Compiler Options", and --windowtheme, --gadgettheme support for commandline @LineBreak
+- Added: #PB_Gadget_RequiredSize support for GadgetWidth() and GadgetHeight() @LineBreak
+@LineBreak
+- Optimized: better gadget resizing to handle CSS margin and borders definition @LineBreak
+- Optimized: reworked the window theme files, it's now much easier to create a skin for window @LineBreak
+- Optimized: libraries Dialog, Gadget and Window with google closure compiler in advanced mode @LineBreak
+@LineBreak
+- Changed: procedure naming in generated Javascript: it's now f_procedurename @LineBreak
+@LineBreak
+- Fixed: various bug fixes
+
+@Section 13th may 2015 : Version 1.02
+
+- Added: full export support, for simple files and projects @LineBreak
+- Added: online showcase viewer for the website (written in SpiderBasic) @LineBreak
+- Added: 'favicon' support @LineBreak
+@LineBreak
+- Optimized: reduced the JavaScript dependencies footprint (3 times smaller) @LineBreak
+@LineBreak
+- Fixed: various bug fixes
+
+@Section 8th april 2015 : Version 1.01
+
+- Fixed: improved the documentation @LineBreak
+- Fixed: various bug fixes @LineBreak
+
+@Section 17th march 2015 : Version 1.00
+
+- First public version of SpiderBasic for Windows, OSX and Linux !
