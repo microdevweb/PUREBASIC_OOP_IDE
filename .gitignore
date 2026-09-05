@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 # .gitignore for PureBasic OOP IDE
 # ============================================================================
 
@@ -25,4 +25,5 @@ ide/PureBasicIDE/Build/*.zip
 # Example test binaries
 examples/*/*.exe
 examples/*/*_generated.pb
+examples/*/*_transpiled.pb
 examples/*/*.pb.map

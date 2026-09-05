@@ -696,18 +696,22 @@ Procedure Parser_SkipType(*pCursor.PTR)
     
     Parser_SkipSpace(*Cursor)
     
-    ; type with module prefix
-    ; this is rare but possible for example with macros
-    If *Cursor\a = ':' And *Cursor\a[1] = ':'
+    ; type with module/namespace prefix (allow multiple :: for OOP namespaces)
+    While *Cursor\a = ':' And *Cursor\a[1] = ':'
       *Cursor + 2
       Parser_SkipSpace(*Cursor)
       
+      *Start = *Cursor
       While ValidCharacters(*Cursor\a) ; skip actual type
         *Cursor + 1
       Wend
       
-      Parser_SkipSpace(*Cursor)
-    EndIf
+      If *Cursor > *Start
+        Parser_SkipSpace(*Cursor)
+      Else
+        Break
+      EndIf
+    Wend
   EndIf
   
   ; check this even without a ".", as it could be "Var${10}"
@@ -882,19 +886,24 @@ Procedure.s Parser_GetType(*pCursor.PTR, Name$)
         Type$ + Parser_Cleanup(PeekS(*Start, *Cursor - *Start, #PB_Ascii))
       EndIf
       
-    ElseIf *Cursor\b = ':' And *Cursor\b[1] = ':'
-      ; structure name with a module prefix
-      *Cursor + 2
-      Parser_SkipSpace(*Cursor)
-      
-      *Start = *Cursor
-      While ValidCharacters(*Cursor\a)
-        *Cursor + 1
+    Else
+      ; structure name with module / OOP namespace prefixes (allow multiple ::)
+      While *Cursor\b = ':' And *Cursor\b[1] = ':'
+        *Cursor + 2
+        Parser_SkipSpace(*Cursor)
+        
+        *Start = *Cursor
+        While ValidCharacters(*Cursor\a)
+          *Cursor + 1
+        Wend
+        
+        If *Start < *Cursor
+          Type$ + "::" + LCase(PeekS(*Start, *Cursor - *Start, #PB_Ascii))
+          Parser_SkipSpace(*Cursor)
+        Else
+          Break
+        EndIf
       Wend
-      
-      If *Start < *Cursor
-        Type$ + "::" + LCase(PeekS(*Start, *Cursor - *Start, #PB_Ascii))
-      EndIf
     EndIf
     
     
@@ -969,12 +978,14 @@ Procedure.s Parser_GetPrototype(*pCursor.PTR)
         Result$ = Parser_Cleanup(PeekS(*Start, *pCursor\p - *Start, #PB_Ascii))
       EndIf
     EndIf
+    
+    ProcedureReturn Result$
+  Else
+    ProcedureReturn ""
   EndIf
-  
-  ProcedureReturn Result$
 EndProcedure
 
-; Analyze/add an unknown word (could be a variable)
+; get unknown word, like label, macro, variable
 ;
 Procedure Parser_GetUnknownWord(*pCursor.PTR, InImport, ModulePrefix$)
   *Cursor.PTR = *pCursor\p
@@ -992,6 +1003,23 @@ Procedure Parser_GetUnknownWord(*pCursor.PTR, InImport, ModulePrefix$)
   ; filter numbers. Note: the .xx part of a number is handled in the '.' handler
   If IsDecNumber(*Start, length) = 0 And (*Start\b <> '*' Or IsDecNumber(*Start+1, length-1) = 0)
     Parser_SkipSpace(*Cursor)
+    
+    ; Check for OOP Field declarations: Private / Public followed by variable
+    Protected WordUpper$ = UCase(Word$)
+    If WordUpper$ = "PRIVATE" Or WordUpper$ = "PUBLIC"
+      Protected *TempCursor.PTR = *Cursor
+      Parser_SkipSpace(*TempCursor)
+      If ValidCharacters(*TempCursor\a) Or (*TempCursor\a = '*' And ValidCharacters(*TempCursor\a[1]))
+        Protected *LookAhead.PTR = *TempCursor
+        Protected NextWord$ = UCase(Parser_GetWord(@*LookAhead))
+        If NextWord$ <> "METHOD" And NextWord$ <> "GETTER" And NextWord$ <> "SETTER" And NextWord$ <> "PROPERTY" And NextWord$ <> "FIELD" And NextWord$ <> "DECLARE"
+          *Cursor = *TempCursor
+          Parser_GetVariables(@*Cursor, "", #SCOPE_LOCAL, 0)
+          *pCursor\p = *Cursor
+          ProcedureReturn
+        EndIf
+      EndIf
+    EndIf
     
     ; Check if this is actually a label (first text on the line, and followed by a ":")
     IsLabel = 0
@@ -3440,50 +3468,51 @@ EndProcedure
 ;   *pLine\i - line of base item
 ;   StructureStack() - filled with structure subitems leading up to the last \
 Procedure LocateStructureBaseItem(Line$, Position, *pItem.INTEGER, *pLine.INTEGER, List StructureStack.s())
-  IsStructure          = #False
-  *BaseItem.SourceItem = 0
-  BaseItemLine         = *pLine\i
+  Protected IsStructure          = #False
+  Protected *BaseItem.SourceItem = 0
+  Protected BaseItemLine         = *pLine\i
+  Protected Buffer$              = Line$
+  Protected *Buffer              = @Buffer$
   ClearList(StructureStack())
   
   ; Strings with escape sequences cannot be searched backwards, so do a first run to block all strings
   ; escape sequences and char consts. This way they can be ignored below
-  *Forward.PTR = @Buffer
+  Protected *Forward.Character = *Buffer
   While *Forward\c
     If *Forward\c = '"' Or *Forward\c = 39
       ; String or CharConst
-      Stop = *Forward\c
-      *Forward\c = ' ': *Forward + #CharSize
-      While *Forward\c And *Forward\c <> Stop
-        *Forward\c = ' ': *Forward + #CharSize
+      Protected StopChar = *Forward\c
+      *Forward\c = ' ': *Forward + SizeOf(Character)
+      While *Forward\c And *Forward\c <> StopChar
+        *Forward\c = ' ': *Forward + SizeOf(Character)
       Wend
-      If *Forward\c = Stop
-        *Forward\c = ' ': *Forward + #CharSize
+      If *Forward\c = StopChar
+        *Forward\c = ' ': *Forward + SizeOf(Character)
       EndIf
       
-    ElseIf *Forward\c = '~' And *Forward\c[1] = '"'
+    ElseIf *Forward\c = '~' And PeekC(*Forward + SizeOf(Character)) = '"'
       ; Escaped string
-      *Forward\c = ' ': *Forward + #CharSize
-      *Forward\c = ' ': *Forward + #CharSize
+      *Forward\c = ' ': *Forward + SizeOf(Character)
+      *Forward\c = ' ': *Forward + SizeOf(Character)
       While *Forward\c And *Forward\c <> '"'
-        If *Forward\c = '\' And *Forward\c[1] <> 0
-          *Forward\c = ' ': *Forward + #CharSize
-          *Forward\c = ' ': *Forward + #CharSize
+        If *Forward\c = '\' And PeekC(*Forward + SizeOf(Character)) <> 0
+          *Forward\c = ' ': *Forward + SizeOf(Character)
+          *Forward\c = ' ': *Forward + SizeOf(Character)
         Else
-          *Forward\c = ' ': *Forward + #CharSize
+          *Forward\c = ' ': *Forward + SizeOf(Character)
         EndIf
       Wend
       If *Forward\c = '"'
-        *Forward\c = ' ': *Forward + #CharSize
+        *Forward\c = ' ': *Forward + SizeOf(Character)
       EndIf
       
     Else
-      *Forward + #CharSize
+      *Forward + SizeOf(Character)
     EndIf
   Wend
   
   ; Skip any whitespace
-  *Buffer = @Line$
-  *Cursor.Character = *Buffer + Position * SizeOf(Character)
+  Protected *Cursor.Character = *Buffer + Position * SizeOf(Character)
   While *Cursor >= *Buffer And (*Cursor\c = ' ' Or *Cursor\c = 9)
     *Cursor - SizeOf(Character)
   Wend

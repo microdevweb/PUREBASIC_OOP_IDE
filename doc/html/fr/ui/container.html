@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang='fr'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Classe Container - PureBasic OOP Documentation</title>
+  <link rel='stylesheet' href='../../css/doc_theme.css'>
+</head>
+<body>
+  <header class='doc-header'>
+    <a href='../index.html' class='brand-container'>
+      <img src='../../assets/PB_OOP_LOGO.jpeg' alt='Logo' class='brand-logo'>
+      <span class='brand-title'>PureBasic OOP</span>
+      <span class='brand-version'>v1.2 Native</span>
+    </a>
+    <div class='header-controls'>
+      <div class='search-box'>
+        <span class='search-icon'>&#128269;</span>
+        <input type='text' class='search-input' id='search-input' placeholder='Rechercher...'>
+      </div>
+      <div class='lang-switch'>
+        <a href='#' class='lang-btn active'>FR</a>
+        <a href='../../en/ui/container.html' class='lang-btn'>EN</a>
+      </div>
+    </div>
+  </header>
+  
+  <div class='layout-container'>
+<nav class='doc-sidebar'>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Introduction</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../index.html'><span>Vue d'ensemble</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Mots-clés POO</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../keywords/class.html'><span>Class / Abstract</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/method.html'><span>Method / Override</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/properties.html'><span>Getter / Setter / Prop</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/inheritance.html'><span>Extends / Super</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/encapsulation.html'><span>Public / Protected / Private</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/lifecycle.html'><span>New / Free / Init</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/operators.html'><span>This / Cast / TypeOf</span><span class='badge badge-kw'>KW</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Socle UI & Hiérarchie</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/component.html'><span>Component (Base UI)</span><span class='badge badge-base'>BASE</span></a></li>
+      <li class='nav-item'><a href='../ui/gadget.html'><span>Gadget (Natif)</span><span class='badge badge-base'>BASE</span></a></li>
+      <li class='nav-item'><a href='../ui/customgadget.html'><span>CustomGadget (Canvas)</span><span class='badge badge-base'>BASE</span></a></li>
+      <li class='nav-item active'><a href='../ui/container.html'><span>Container (Layout Base)</span><span class='badge badge-wpf'>WPF</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Composants UI (Contrôles)</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/button.html'><span>Button</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/checkbox.html'><span>CheckBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/combobox.html'><span>ComboBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/datepicker.html'><span>DatePicker</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/editor.html'><span>Editor</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/groupbox.html'><span>GroupBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/label.html'><span>Label</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/listicon.html'><span>ListIcon</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/listview.html'><span>ListView</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/progressbar.html'><span>ProgressBar</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/radiobutton.html'><span>RadioButton</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/slider.html'><span>Slider</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/spinbox.html'><span>SpinBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/tabcontrol.html'><span>TabControl</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/textbox.html'><span>TextBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/toggleswitch.html'><span>ToggleSwitch</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/treeview.html'><span>TreeView</span><span class='badge badge-ui'>UI</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Layouts Responsifs (WPF)</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/stackpanel.html'><span>StackPanel</span><span class='badge badge-wpf'>WPF</span></a></li>
+      <li class='nav-item'><a href='../ui/dockpanel.html'><span>DockPanel</span><span class='badge badge-wpf'>WPF</span></a></li>
+      <li class='nav-item'><a href='../ui/grid.html'><span>Grid</span><span class='badge badge-wpf'>WPF</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Architecture MVVM & DataBinding</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/mvvm.html'><span>Architecture MVVM & Bindings</span><span class='badge badge-mvvm'>MVVM</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Application & Fenêtres</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/application.html'><span>Application</span><span class='badge badge-core'>CORE</span></a></li>
+      <li class='nav-item'><a href='../ui/window.html'><span>Window</span><span class='badge badge-core'>CORE</span></a></li>
+    </ul>
+  </div>
+</nav>
+    <main class='doc-content'>
+      <div class='breadcrumb'>
+        <a href='../index.html'>Accueil</a>
+        <span class='breadcrumb-separator'>/</span><span>Composants UI</span>
+        <span class='breadcrumb-separator'>/</span><span style='color: var(--accent-blue);'>Classe Container</span>
+      </div>
+      
+      <div class='page-header'>
+        <div class='title-row'>
+          <h1 class='page-title'>Classe Container</h1>
+          <span class='badge badge-wpf'>WPF Layout</span>
+        </div>
+        <p class='page-lead'>Classe abstraite racine des conteneurs de disposition réactifs (WPF-style).</p>
+      </div>
+      
+      <div class='inheritance-box'>
+  <div class='inheritance-header'><span>&#128391;</span> Hiérarchie d'héritage</div>
+  <div class='inheritance-chain'>
+    <a href='../keywords/class.html' class='inheritance-node'>Core::Object</a>
+    <span class='inheritance-arrow'>&rarr;</span>
+    <a href='component.html' class='inheritance-node'>UI::Component</a>
+    <span class='inheritance-arrow'>&rarr;</span>
+    <span class='inheritance-node current'>UI::Layouts::Container</span>
+  </div>
+  <div class='derived-classes-box'>
+    <div class='derived-classes-title'>Classes dérivées (héritant de cette classe) :</div>
+    <div class='derived-classes-list'>
+      <a href='stackpanel.html' class='derived-badge'>UI::Layouts::StackPanel</a>
+      <a href='dockpanel.html' class='derived-badge'>UI::Layouts::DockPanel</a>
+      <a href='grid.html' class='derived-badge'>UI::Layouts::Grid</a>
+    </div>
+  </div>
+  <div class='inherited-members-summary'>
+    <div class='inherited-members-title'><span>Méthodes héritées de <a href='component.html' style='color: var(--accent-blue); text-decoration: underline;'>UI::Component</a></span> <span style='font-size: 0.78rem; font-weight: normal; color: var(--text-muted);'>(11 méthodes)</span></div>
+    <div class='inherited-members-tags'>
+      <a href='component.html' class='inherited-tag'>SetPosition(x, y)</a>
+      <a href='component.html' class='inherited-tag'>SetSize(w, h)</a>
+      <a href='component.html' class='inherited-tag'>SetMargin(l, t, r, b)</a>
+      <a href='component.html' class='inherited-tag'>SetMarginAll(m)</a>
+      <a href='component.html' class='inherited-tag'>SetHorizontalAlignment(align)</a>
+      <a href='component.html' class='inherited-tag'>SetVerticalAlignment(align)</a>
+      <a href='component.html' class='inherited-tag'>SetVisible(v)</a>
+      <a href='component.html' class='inherited-tag'>SetEnabled(e)</a>
+      <a href='component.html' class='inherited-tag'>Arrange(rx, ry, rw, rh)</a>
+      <a href='component.html' class='inherited-tag'>GetDesiredWidth()</a>
+      <a href='component.html' class='inherited-tag'>GetDesiredHeight()</a>
+    </div>
+  </div>
+</div>
+      
+
+<div class='doc-section'>
+  <h2 class='section-title'>Description</h2>
+  <p>La classe abstraite <code>UI::Layouts::Container</code> (héritant de <code>UI::Component</code>) est la base de tous les panneaux de disposition automatique réactive. Elle gère la liste dynamique des composants enfants (<code>Children</code>), les marges intérieures (<code>Padding</code>) et le calcul en cascade de la disposition.</p>
+</div>
+
+<div class='doc-section'>
+  <h2 class='section-title'>Méthodes Principales de Container</h2>
+  <div class='table-wrapper'>
+    <table>
+      <tr><th>Méthode</th><th>Description</th></tr>
+      <tr><td><code>AddChild(*child.UI::Component)</code></td><td>Ajoute un composant enfant au conteneur.</td></tr>
+      <tr><td><code>RemoveChild(*child.UI::Component)</code></td><td>Retire un composant du conteneur.</td></tr>
+      <tr><td><code>ClearChildren()</code></td><td>Supprime tous les composants enfants.</td></tr>
+      <tr><td><code>GetChildCount()</code></td><td>Retourne le nombre d'enfants gérés.</td></tr>
+      <tr><td><code>GetChild(index.i)</code></td><td>Retourne le pointeur vers l'enfant à l'index donné.</td></tr>
+      <tr><td><code>SetPadding(l.i, t.i, r.i, b.i)</code></td><td>Définit les marges intérieures du conteneur en pixels.</td></tr>
+      <tr><td><code>SetPaddingAll(p.i)</code></td><td>Définit une marge intérieure identique sur les 4 côtés.</td></tr>
+    </table>
+  </div>
+</div>
+
+    </main>
+  </div>
+  
+  <footer class='doc-footer'>
+    <p>&copy; 2026 PureBasic OOP Project - MicrodevWeb | Dual License GPL v3 / Fantaisie Software</p>
+  </footer>
+</body>
+</html>

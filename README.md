@@ -1,42 +1,47 @@
-﻿# PureBasic OOP IDE & Toolchain — Version ALPHA 1.0
+# PureBasic OOP IDE & Toolchain — Version ALPHA 1.2
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Status: Alpha](https://img.shields.io/badge/Status-Alpha%201.0-orange.svg)](#avertissement--disclaimer)
+[![Status: Alpha](https://img.shields.io/badge/Status-Alpha%201.2-orange.svg)](#avertissement--disclaimer)
 [![Language: PureBasic](https://img.shields.io/badge/Language-PureBasic%206.x-green.svg)](https://www.purebasic.com)
 
 ---
 
 ## 🇫🇷 Français
 
-### ⚠️ Avertissement — Version ALPHA 1.0
+### ⚠️ Avertissement — Version ALPHA 1.2
 
-> **IMPORTANT :** Il s'agit d'une version **ALPHA 1.0**. Ce projet est en cours de développement actif. Bien que l'ensemble des fonctionnalités fondamentales soient testées et opérationnelles, **un fonctionnement optimal et sans bogue ne peut être garanti pour une utilisation en production**. Des évolutions de syntaxe ou d'architecture peuvent survenir dans les versions ultérieures. Vos retours, tests et signalements de bogues sont les bienvenus !
+> **IMPORTANT :** Il s'agit d'une version **ALPHA 1.2**. Ce projet apporte des évolutions majeures : surcharge de méthodes (*Method Overload*), inclusion automatique du framework (*Zero-Include*), architecture réactive **MVVM** complète, système de Layouts WPF et aide contextuelle F1 dans l'IDE. Des évolutions peuvent survenir dans les versions ultérieures. Vos retours et tests sont les bienvenus !
 
 ---
 
 ### 1. Présentation
 
-**PureBasic OOP IDE** est un environnement de développement complet basé sur l'IDE officiel de PureBasic (sous licence GPL v3), étendu pour intégrer nativement la **Programmation Orientée Objet (POO)** et une **Double Syntaxe** moderne sans verbiage.
+**PureBasic OOP IDE** est un environnement de développement complet basé sur l'IDE officiel de PureBasic (sous licence GPL v3), étendu pour intégrer nativement la **Programmation Orientée Objet (POO)**, une **Double Syntaxe** moderne et un écosystème applicatif complet.
 
-#### Fonctionnalités Majeures de PureBasic OOP :
+#### Fonctionnalités Majeures (ALPHA 1.2) :
 - **Classes & Objets** : Définition de classes avec champs (`Public`, `Protected`, `Private`), méthodes, constructeurs (`Init()`) et destructeurs (`Free()`).
-- **Héritage Simple & Polymorphisme Dynamique** : Héritage avec `Extends`, interfaces VTable polymorphiques haute performance, résolution automatique `This\...` et appels de classe mère avec `Super::`.
+- **Surcharge de Méthodes (Overloading)** : Définition de plusieurs méthodes portant le même nom avec des signatures d'arguments distinctes.
+- **Héritage Simple & Polymorphisme Dynamique** : Héritage avec `Extends`, interfaces VTable polymorphiques haute performance, résolution automatique `This\...` et appels de classe mère avec `Super\...`.
 - **Classes Abstraites & Méthodes Abstraites** : `Abstract Class` et `Public Abstract Method` avec contrôle sémantique strict à la compilation.
-- **Namespaces Imbriqués & `Using`** : Organisation modulaire (`Namespace MonModule::SousModule`), directives d'importation `Using` et alias (`Namespace MonAlias = MonNamespace`).
-- **Support Multi-Fichiers** : `XIncludeFile` et `IncludeFile` gérés de manière récursive avec déduplication de classes.
-- **Double Syntaxe Hybride** : Possibilité d'écrire son code avec les mots-clés PureBasic classiques (`Class ... EndClass`, `Method ... EndMethod`, `If ... EndIf`) ou avec une **syntaxe moderne style C/C# à accolades `{ }`** (`Class Dog { ... }`, `Method Aboyer() { ... }`).
-- **Framework GUI Objet (`lib/ui/`)** : Encapsulation complète des fenêtres (`UI::Window`), gadgets (`UI::Button`, `UI::TextBox`, `UI::Label`, `UI::CheckBox`, etc.) et création de **Custom Gadgets** vectoriels propriétaires sur Canvas (`UI::CustomGadget`, `UI::Controls::ToggleSwitch`).
+- **Namespaces Imbriqués & `Using`** : Organisation modulaire (`Namespace MonModule::SousModule`), directives d'importation `Using` et alias.
+- **Framework Zéro-Include** : Le transpileur détecte automatiquement les usages de `UI::` ou `MVVM::` et injecte le framework sans avoir à écrire de `XIncludeFile` manuel vers le SDK.
+- **Architecture Réactive MVVM** : Sous-système complet `MVVM` avec `MVVM::ViewModelBase`, propriétés observables fortement typées (`MVVM::StringProperty`, `MVVM::IntProperty`, `MVVM::BoolProperty`, `MVVM::DoubleProperty`), commandes `MVVM::RelayCommand` et moteur de liaison bidirectionnelle `MVVM::BindingEngine`.
+- **Layouts Réactifs & Boîte WPF** : Modèle de disposition moderne avec `UI::StackPanel`, `UI::DockPanel` et `UI::Grid` pour des interfaces qui s'adaptent instantanément aux redimensionnements.
+- **Vues Déclaratives XML (`UI::XMLLoader`)** : Définition de l'interface en XML avec expressions de liaison `{Binding NomPropriete, Mode=TwoWay}`.
+- **Aide Contextuelle F1 Intégrée** : Placez le curseur sur n'importe quel mot-clé ou composant dans l'IDE et appuyez sur **F1** pour ouvrir sa documentation avec exemples et hiérarchie de classes.
 - **Source Mapping Précis (`.pb.map`)** : Toutes les erreurs du compilateur natif PureBasic sont automatiquement remappées vers les numéros de ligne exacts des fichiers sources `.pbo`.
 
 ---
 
-### 2. Prérequis Système
+### 2. Démarrage Rapide avec les Exemples Recommandés
 
-| Système | Version Minimale | Compilateur Recommandé |
-| :--- | :--- | :--- |
-| **Windows** | Windows 10 / 11 (64-bit) | PureBasic 6.00 LTS à 6.40 (x64) |
-| **Linux** | Ubuntu 22.04+ / Debian 12+ / Fedora 39+ | PureBasic 6.00 LTS à 6.40 (x64) avec GTK3 et build-essential |
-| **macOS** | macOS 12 Monterey ou supérieur | PureBasic 6.00 LTS à 6.40 (x64 / ARM64) avec Xcode Command Line Tools |
+Ouvrez l'un des exemples pertinents situés dans le dossier `examples/` :
+- **`examples/01_basics_oop/main.pb`** : Fondamentaux POO (classes, héritage, polymorphisme, constructeurs/destructeurs).
+- **`examples/02_responsive_layout/main.pb`** : Layouts réactifs WPF (StackPanel, DockPanel, Grid).
+- **`examples/03_simple_mvvm/Main.pb`** : Modèle MVVM minimal réactif avec propriétés liées.
+- **`examples/04_todo_app/main.pb`** : Application complète de gestion de tâches réactive avec vue XML et DataBinding bidirectionnel.
+
+Appuyez sur **`F5`** (ou menu *Compiler -> Compiler / Exécuter*) pour lancer immédiatement l'exemple.
 
 ---
 
@@ -80,68 +85,44 @@
    ./build_ide
    ```
 
-#### 3.3 Sous macOS (Marche à suivre)
-
-1. Installez les outils de ligne de commande Xcode si ce n'est pas déjà fait :
-   ```bash
-   xcode-select --install
-   ```
-2. Définissez la variable d'environnement `PUREBASIC_HOME` :
-   ```bash
-   export PUREBASIC_HOME="/Applications/PureBasic.app/Contents/Resources"
-   export PATH="$PUREBASIC_HOME/compilers:$PATH"
-   ```
-3. Compilez le transpileur OOP :
-   ```bash
-   pbcompiler compiler/transpiler.pb -e compiler/transpiler
-   ```
-4. Lancez le script de build pour générer l'application macOS `pbo_ide.app`.
-
----
-
-### 4. Démarrage Rapide (Quick Start)
-
-1. Lancez **`pbo_ide.exe`**.
-2. Ouvrez un exemple dans le dossier `examples/` :
-   - `examples/01_Basics_Classes/animal_hierarchy.pbo` (Classes & Polymorphisme).
-   - `examples/04_Dual_Syntax_CStyle/c_style_demo.pbo` (Syntaxe à accolades `{ }`).
-   - `examples/05_GUI_OOP_Modern_CStyle/demo_gui_oop.pbo` (Application GUI complète).
-3. Appuyez sur **`F5`** (ou menu *Compiler -> Compiler / Exécuter*) :
-   Le transpileur OOP convertit le code à la volée, le compilateur natif produit le binaire et lance l'application !
-
 ---
 
 ## 🇬🇧 English
 
-### ⚠️ Disclaimer — ALPHA 1.0 Release
+### ⚠️ Disclaimer — ALPHA 1.2 Release
 
-> **IMPORTANT:** This is an **ALPHA 1.0** release. This project is under active development. While core features are implemented and tested, **optimal performance and bug-free operation cannot be guaranteed for production use**. Syntax adjustments or architectural improvements may occur in subsequent releases. Feedback, bug reports, and contributions are warmly welcome!
+> **IMPORTANT:** This is an **ALPHA 1.2** release. Major additions include: **Method Overloading**, **Zero-Include Framework Automation**, **Complete Reactive MVVM Subsystem**, **WPF-Style Responsive Box Layouts**, and **Integrated F1 Contextual Help**. Feedback and contributions are warmly welcome!
 
 ---
 
 ### 1. Overview
 
-**PureBasic OOP IDE** is a full-featured integrated development environment derived from the official PureBasic IDE (licensed under GPL v3), extended to provide native **Object-Oriented Programming (OOP)** and a **Dual Syntax Mode** (classic PureBasic vs clean C/C# style `{ }`).
+**PureBasic OOP IDE** is a full-featured integrated development environment derived from the official PureBasic IDE (licensed under GPL v3), extended to provide native **Object-Oriented Programming (OOP)**, modern **Dual Syntax**, and a comprehensive enterprise application framework.
 
-#### Core Features:
+#### Core Features (ALPHA 1.2):
 - **Classes & Objects**: Encapsulation with `Public`, `Protected`, `Private` members, constructors (`Init()`), destructors (`Free()`).
-- **Inheritance & Dynamic Polymorphism**: `Extends` keyword, high-speed VTables, automatic polymorphic dispatch via `This\...`, and parent calls via `Super::`.
+- **Method Overloading**: Define multiple methods with the same name and distinct parameter signatures.
+- **Inheritance & Dynamic Polymorphism**: `Extends` keyword, high-speed VTables, automatic polymorphic dispatch via `This\...`, and parent calls via `Super\...`.
 - **Abstract Classes & Methods**: `Abstract Class` and `Public Abstract Method` with compile-time enforcement.
-- **Nested Namespaces & `Using`**: Hierarchy management (`Namespace Game::Graphics`), `Using` imports, and aliases.
-- **Multi-File Architecture**: Recursive file resolution with class deduplication via `XIncludeFile`.
-- **Dual Syntax**: Choose between standard PureBasic keywords or modern C-style curly braces `{ }`.
-- **GUI OOP Framework (`lib/ui/`)**: Native object-oriented Windows, Gadgets, and owner-drawn Canvas Custom Gadgets (`UI::CustomGadget`, `UI::Controls::ToggleSwitch`).
+- **Nested Namespaces & `Using`**: Modular organization (`Namespace App::ViewModels`), `Using` imports, and aliases.
+- **Zero-Include Framework**: The transpiler automatically detects `UI::` or `MVVM::` namespaces and injects the framework transparently into memory.
+- **Reactive MVVM Architecture**: Full `MVVM` subsystem featuring `MVVM::ViewModelBase`, typed observable properties (`MVVM::StringProperty`, `MVVM::IntProperty`, `MVVM::BoolProperty`, `MVVM::DoubleProperty`), `MVVM::RelayCommand`, and two-way `MVVM::BindingEngine`.
+- **WPF-Style Responsive Layouts**: Modern box model with `UI::StackPanel`, `UI::DockPanel`, and `UI::Grid` for layouts that adapt instantly to window resizing.
+- **Declarative XML Views (`UI::XMLLoader`)**: Define views in clean XML with `{Binding PropertyName, Mode=TwoWay}` expressions.
+- **Integrated F1 Contextual Help**: Place your cursor on any OOP keyword or UI component in the IDE and press **F1** to open its documentation.
 - **Source Line Mapping (`.pb.map`)**: Automatically maps all native PureBasic compiler warnings and errors back to original `.pbo` line numbers.
 
 ---
 
-### 2. Requirements
+### 2. Quick Start with Featured Examples
 
-| Platform | Minimum OS | Recommended Compiler |
-| :--- | :--- | :--- |
-| **Windows** | Windows 10 / 11 (64-bit) | PureBasic 6.00 LTS to 6.40 (x64) |
-| **Linux** | Ubuntu 22.04+ / Debian 12+ / Fedora 39+ | PureBasic 6.00 LTS to 6.40 (x64) with GTK3 & build-essential |
-| **macOS** | macOS 12 Monterey or newer | PureBasic 6.00 LTS to 6.40 (x64 / ARM64) with Xcode Tools |
+Open any of the curated examples in the `examples/` directory:
+- **`examples/01_basics_oop/main.pb`**: OOP fundamentals (classes, inheritance, polymorphism, lifecycle).
+- **`examples/02_responsive_layout/main.pb`**: WPF responsive box models (StackPanel, DockPanel, Grid).
+- **`examples/03_simple_mvvm/Main.pb`**: Minimal reactive MVVM pattern with observable bindings.
+- **`examples/04_todo_app/main.pb`**: Real-world reactive task management app with declarative XML view and two-way DataBinding.
+
+Press **`F5`** (or *Compiler -> Compile/Run*) to build and launch immediately.
 
 ---
 
@@ -161,21 +142,12 @@
    export PUREBASIC_HOME=/opt/purebasic
    export PATH=$PUREBASIC_HOME/compilers:$PATH
    ```
-3. Compile the transpiler and IDE:
+3. Compile transpiler and IDE:
    ```bash
    pbcompiler compiler/transpiler.pb -e compiler/transpiler
    pbcompiler build_ide.pb -e build_ide
    ./build_ide
    ```
-
-#### 3.3 On macOS
-1. Install Xcode Command Line Tools: `xcode-select --install`
-2. Set `PUREBASIC_HOME`:
-   ```bash
-   export PUREBASIC_HOME="/Applications/PureBasic.app/Contents/Resources"
-   export PATH="$PUREBASIC_HOME/compilers:$PATH"
-   ```
-3. Compile transpiler and IDE build scripts.
 
 ---
 

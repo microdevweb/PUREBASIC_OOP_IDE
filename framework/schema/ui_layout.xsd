@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <!-- Common layout & placement attributes -->
+  <xs:attributeGroup name="LayoutAttributes">
+    <xs:attribute name="Name" type="xs:string" />
+    <xs:attribute name="name" type="xs:string" />
+    <xs:attribute name="ID" type="xs:string" />
+    <xs:attribute name="id" type="xs:string" />
+    <xs:attribute name="Width" type="xs:integer" />
+    <xs:attribute name="width" type="xs:integer" />
+    <xs:attribute name="Height" type="xs:integer" />
+    <xs:attribute name="height" type="xs:integer" />
+    <xs:attribute name="MinWidth" type="xs:integer" />
+    <xs:attribute name="MinHeight" type="xs:integer" />
+    <xs:attribute name="MaxWidth" type="xs:integer" />
+    <xs:attribute name="MaxHeight" type="xs:integer" />
+    <xs:attribute name="Margin" type="xs:string" />
+    <xs:attribute name="margin" type="xs:string" />
+    <xs:attribute name="Padding" type="xs:string" />
+    <xs:attribute name="padding" type="xs:string" />
+    <xs:attribute name="HAlign">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Left"/>
+          <xs:enumeration value="Center"/>
+          <xs:enumeration value="Right"/>
+          <xs:enumeration value="Stretch"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="VAlign">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Top"/>
+          <xs:enumeration value="Center"/>
+          <xs:enumeration value="Bottom"/>
+          <xs:enumeration value="Stretch"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="Dock">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Top"/>
+          <xs:enumeration value="Bottom"/>
+          <xs:enumeration value="Left"/>
+          <xs:enumeration value="Right"/>
+          <xs:enumeration value="Fill"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="Row" type="xs:integer" />
+    <xs:attribute name="row" type="xs:integer" />
+    <xs:attribute name="Column" type="xs:integer" />
+    <xs:attribute name="column" type="xs:integer" />
+    <xs:attribute name="Col" type="xs:integer" />
+    <xs:attribute name="RowSpan" type="xs:integer" />
+    <xs:attribute name="ColumnSpan" type="xs:integer" />
+    <xs:attribute name="ColSpan" type="xs:integer" />
+    <xs:attribute name="Visible" type="xs:boolean" />
+    <xs:attribute name="Enabled" type="xs:boolean" />
+    <xs:attribute name="Tooltip" type="xs:string" />
+  </xs:attributeGroup>
+
+  <!-- Control Elements -->
+  <xs:complexType name="ButtonType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Text" type="xs:string"/>
+    <xs:attribute name="text" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="TextBoxType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Text" type="xs:string"/>
+    <xs:attribute name="text" type="xs:string"/>
+    <xs:attribute name="Placeholder" type="xs:string"/>
+    <xs:attribute name="ReadOnly" type="xs:boolean"/>
+    <xs:attribute name="Numeric" type="xs:boolean"/>
+    <xs:attribute name="Password" type="xs:boolean"/>
+    <xs:attribute name="Multiline" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="LabelType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Text" type="xs:string"/>
+    <xs:attribute name="text" type="xs:string"/>
+    <xs:attribute name="Align">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Left"/>
+          <xs:enumeration value="Center"/>
+          <xs:enumeration value="Right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="CheckBoxType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Text" type="xs:string"/>
+    <xs:attribute name="Checked" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="ProgressBarType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Value" type="xs:integer"/>
+    <xs:attribute name="Min" type="xs:integer"/>
+    <xs:attribute name="Max" type="xs:integer"/>
+  </xs:complexType>
+
+  <xs:complexType name="SliderType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Value" type="xs:integer"/>
+    <xs:attribute name="Min" type="xs:integer"/>
+    <xs:attribute name="Max" type="xs:integer"/>
+    <xs:attribute name="Orientation">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Horizontal"/>
+          <xs:enumeration value="Vertical"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="ComboBoxType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Items" type="xs:string"/>
+    <xs:attribute name="SelectedIndex" type="xs:integer"/>
+    <xs:attribute name="Editable" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="ListIconType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Columns" type="xs:string"/>
+    <xs:attribute name="MultiSelect" type="xs:boolean"/>
+    <xs:attribute name="FullRowSelect" type="xs:boolean"/>
+    <xs:attribute name="GridLines" type="xs:boolean"/>
+    <xs:attribute name="CheckBoxes" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="ToggleSwitchType">
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Text" type="xs:string"/>
+    <xs:attribute name="Checked" type="xs:boolean"/>
+    <xs:attribute name="OnColor" type="xs:string"/>
+    <xs:attribute name="OffColor" type="xs:string"/>
+  </xs:complexType>
+
+  <!-- Panel & Container Elements -->
+  <xs:group name="VisualElements">
+    <xs:choice>
+      <xs:element name="DockPanel" type="DockPanelType"/>
+      <xs:element name="StackPanel" type="StackPanelType"/>
+      <xs:element name="Grid" type="GridType"/>
+      <xs:element name="Container" type="ContainerType"/>
+      <xs:element name="Button" type="ButtonType"/>
+      <xs:element name="TextBox" type="TextBoxType"/>
+      <xs:element name="Label" type="LabelType"/>
+      <xs:element name="CheckBox" type="CheckBoxType"/>
+      <xs:element name="ProgressBar" type="ProgressBarType"/>
+      <xs:element name="Slider" type="SliderType"/>
+      <xs:element name="ComboBox" type="ComboBoxType"/>
+      <xs:element name="ListIcon" type="ListIconType"/>
+      <xs:element name="ToggleSwitch" type="ToggleSwitchType"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="DockPanelType">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="VisualElements"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="LastChildFill" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="StackPanelType">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="VisualElements"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Orientation">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Vertical"/>
+          <xs:enumeration value="Horizontal"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="Spacing" type="xs:integer"/>
+    <xs:attribute name="spacing" type="xs:integer"/>
+  </xs:complexType>
+
+  <xs:complexType name="GridType">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="VisualElements"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="Rows" type="xs:string"/>
+    <xs:attribute name="rows" type="xs:string"/>
+    <xs:attribute name="Columns" type="xs:string"/>
+    <xs:attribute name="columns" type="xs:string"/>
+    <xs:attribute name="Cols" type="xs:string"/>
+    <xs:attribute name="cols" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="ContainerType">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="VisualElements"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="LayoutAttributes"/>
+    <xs:attribute name="BackgroundColor" type="xs:string"/>
+    <xs:attribute name="BorderColor" type="xs:string"/>
+    <xs:attribute name="BorderWidth" type="xs:integer"/>
+    <xs:attribute name="CornerRadius" type="xs:integer"/>
+  </xs:complexType>
+
+  <!-- Root Elements -->
+  <xs:element name="Window">
+    <xs:complexType>
+      <xs:sequence minOccurs="0" maxOccurs="1">
+        <xs:group ref="VisualElements"/>
+      </xs:sequence>
+      <xs:attribute name="Title" type="xs:string"/>
+      <xs:attribute name="title" type="xs:string"/>
+      <xs:attribute name="Width" type="xs:integer"/>
+      <xs:attribute name="width" type="xs:integer"/>
+      <xs:attribute name="Height" type="xs:integer"/>
+      <xs:attribute name="height" type="xs:integer"/>
+      <xs:attribute name="Flags" type="xs:string"/>
+      <xs:attribute name="Parent" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

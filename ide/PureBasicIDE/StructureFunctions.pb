@@ -802,87 +802,158 @@ Procedure FindStructureInterface(Name$, Type, List Output.s(), Recursion)
   ProcedureReturn #False
 EndProcedure
 
+Global NewMap OOP_VisitedFilesMap.b()
+Global NewMap OOP_VisitedClassesMap.b()
+
+Procedure.s OOP_NormalizePath(Path$)
+  Path$ = ReplaceString(Path$, "/", "\")
+  ProcedureReturn LCase(Path$)
+EndProcedure
+
+Procedure.s OOP_StripBracesAndComments(Text$)
+  Protected p = FindString(Text$, ";")
+  If p > 0 : Text$ = Left(Text$, p - 1) : EndIf
+  Text$ = Trim(Text$)
+  If Right(Text$, 1) = "{"
+    Text$ = Trim(Left(Text$, Len(Text$) - 1))
+  EndIf
+  ProcedureReturn Text$
+EndProcedure
+
+Procedure.s OOP_GetShortName(FullName$)
+  Protected p = 1, lastP = 0
+  Repeat
+    p = FindString(FullName$, "::", p)
+    If p > 0
+      lastP = p
+      p + 2
+    Else
+      Break
+    EndIf
+  ForEver
+  If lastP > 0
+    ProcedureReturn Mid(FullName$, lastP + 2)
+  Else
+    ProcedureReturn FullName$
+  EndIf
+EndProcedure
+
+Declare FindClassInterface(Name$, List Output.s(), IncludePrivate = #True, Recursion = 0)
+
 Procedure FindClassInterfaceFromSource(*Source.SourceFile, Name$, List Output.s(), IncludePrivate, Recursion = 0)
-  If Recursion > 50 Or *Source = 0 Or Name$ = ""
+  If Recursion > 15 Or *Source = 0 Or Name$ = ""
     ProcedureReturn #False
   EndIf
   
-  Success = #False
-  LineCount = ScintillaSendMessage(*Source\EditorGadget, #SCI_GETLINECOUNT, 0, 0)
-  InsideTargetClass = #False
-  ExtendsClass$ = ""
+  Protected Success = #False
+  Protected LineCount = ScintillaSendMessage(*Source\EditorGadget, #SCI_GETLINECOUNT, 0, 0)
+  Protected InsideTargetClass = #False
+  Protected ClassBraceDepth = 0
+  Protected ExtendsClass$ = ""
+  Protected CurrentNamespace$ = ""
+  Protected TargetShort$ = LCase(OOP_GetShortName(Name$))
+  Protected TargetFull$ = LCase(Name$)
+  Protected line.i, fieldIdx.i
   
   For line = 0 To LineCount - 1
-    LineText$ = Trim(GetLine(line, *Source))
+    Protected LineText$ = Trim(GetLine(line, *Source))
     
     ; Skip empty lines or comments
     If LineText$ = "" Or Left(LineText$, 1) = ";"
       Continue
     EndIf
     
-    ; Check start of Class
-    If Left(UCase(LineText$), 6) = "CLASS " Or Left(UCase(LineText$), 6) = "CLASS	"
-      CurrentClassName$ = Trim(Mid(LineText$, 7))
-      ExtendsPos = FindString(UCase(CurrentClassName$), "EXTENDS ")
+    Protected Upper$ = UCase(LineText$)
+    
+    ; Check Namespace start / end
+    If Left(Upper$, 10) = "NAMESPACE " Or Left(Upper$, 10) = "NAMESPACE	"
+      CurrentNamespace$ = OOP_StripBracesAndComments(Mid(LineText$, 11))
+      Continue
+    ElseIf Left(Upper$, 12) = "ENDNAMESPACE"
+      CurrentNamespace$ = ""
+      Continue
+    EndIf
+    
+    ; Check start of Class (including 'Abstract Class')
+    Protected pClassPos = FindString(Upper$, "CLASS ")
+    If pClassPos = 0 : pClassPos = FindString(Upper$, "CLASS	") : EndIf
+    If Not InsideTargetClass And pClassPos > 0 And Left(Upper$, 8) <> "ENDCLASS"
+      Protected CurrentClassName$ = Trim(Mid(LineText$, pClassPos + 6))
+      Protected ExtendsPos = FindString(UCase(CurrentClassName$), "EXTENDS ")
       If ExtendsPos = 0
         ExtendsPos = FindString(UCase(CurrentClassName$), "EXTENDS	")
       EndIf
       
       If ExtendsPos > 0
-        ExtendsClass$ = Trim(Mid(CurrentClassName$, ExtendsPos + 8))
-        CurrentClassName$ = Trim(Left(CurrentClassName$, ExtendsPos - 1))
+        ExtendsClass$ = OOP_StripBracesAndComments(Trim(Mid(CurrentClassName$, ExtendsPos + 8)))
+        CurrentClassName$ = OOP_StripBracesAndComments(Trim(Left(CurrentClassName$, ExtendsPos - 1)))
       Else
         ExtendsClass$ = ""
+        CurrentClassName$ = OOP_StripBracesAndComments(CurrentClassName$)
       EndIf
       
-      If LCase(CurrentClassName$) = LCase(Name$)
+      Protected FullClass$ = LCase(CurrentClassName$)
+      If CurrentNamespace$ <> ""
+        FullClass$ = LCase(CurrentNamespace$ + "::" + CurrentClassName$)
+      EndIf
+      
+      If LCase(CurrentClassName$) = TargetFull$ Or FullClass$ = TargetFull$ Or LCase(CurrentClassName$) = TargetShort$
         InsideTargetClass = #True
         Success = #True
-        ; If it extends another class, parse the base class first
-        If ExtendsClass$ <> ""
-          FindClassInterface(ExtendsClass$, Output(), IncludePrivate, Recursion + 1)
-        EndIf
+        ClassBraceDepth = CountString(LineText$, "{") - CountString(LineText$, "}")
         Continue
       EndIf
     EndIf
     
     If InsideTargetClass
-      If Left(UCase(LineText$), 8) = "ENDCLASS"
+      If Left(Upper$, 8) = "ENDCLASS"
+        InsideTargetClass = #False
         Break
       EndIf
       
-      ; Parse members
-      SemiColon = FindString(LineText$, ";")
+      If ClassBraceDepth > 0
+        ClassBraceDepth + CountString(LineText$, "{") - CountString(LineText$, "}")
+        If ClassBraceDepth <= 0
+          InsideTargetClass = #False
+          Break
+        EndIf
+      EndIf
+      
+      ; Strip inline comment
+      Protected SemiColon = FindString(LineText$, ";")
       If SemiColon > 0
         LineText$ = Trim(Left(LineText$, SemiColon - 1))
       EndIf
       Upper$ = UCase(LineText$)
       
-      ; 1) Methods: [Public|Private] Method Name(...)
-      IsMethod = #False
-      IsPublic = #True
-      MethodRest$ = ""
-      
-      If Left(Upper$, 14) = "PUBLIC METHOD " Or Left(Upper$, 14) = "PUBLIC METHOD	"
-        IsMethod = #True
-        IsPublic = #True
-        MethodRest$ = Trim(Mid(LineText$, 15))
-      ElseIf Left(Upper$, 15) = "PRIVATE METHOD " Or Left(Upper$, 15) = "PRIVATE METHOD	"
-        IsMethod = #True
-        IsPublic = #False
-        MethodRest$ = Trim(Mid(LineText$, 16))
-      ElseIf Left(Upper$, 7) = "METHOD " Or Left(Upper$, 7) = "METHOD	"
-        IsMethod = #True
-        IsPublic = #True
-        MethodRest$ = Trim(Mid(LineText$, 8))
-      EndIf
-      
-      If IsMethod
+      ; 1) Methods: [Public|Protected|Private] [Override] Method[.<type>] Name(...)
+      Protected pMethod = FindString(Upper$, "METHOD")
+      If pMethod > 0
+        Protected Prefix$ = Trim(Left(Upper$, pMethod - 1))
+        Protected IsPublic = #True
+        If FindString(Prefix$, "PRIVATE") > 0
+          IsPublic = #False
+        EndIf
+        
         If IncludePrivate Or IsPublic
-          MethodName$ = Trim(StringField(MethodRest$, 1, "("))
-          If MethodName$ <> ""
+          Protected MethodRest$ = Trim(Mid(LineText$, pMethod + 6))
+          ; Skip return type if present (.i, .s, etc.)
+          If Left(MethodRest$, 1) = "."
+            Protected pSpace = FindString(MethodRest$, " ")
+            If pSpace = 0 : pSpace = FindString(MethodRest$, Chr(9)) : EndIf
+            If pSpace > 0
+              MethodRest$ = Trim(Mid(MethodRest$, pSpace + 1))
+            EndIf
+          EndIf
+          
+          Protected MethodName$ = Trim(StringField(MethodRest$, 1, "("))
+          If Right(MethodName$, 1) = "{" : MethodName$ = Trim(Left(MethodName$, Len(MethodName$) - 1)) : EndIf
+          
+          ; Exclude constructor Init from member access autocomplete
+          If MethodName$ <> "" And LCase(MethodName$) <> "init"
             If FindString(MethodRest$, "(")
-              Args$ = Mid(MethodRest$, FindString(MethodRest$, "("))
+              Protected Args$ = Mid(MethodRest$, FindString(MethodRest$, "("))
+              If FindString(Args$, "{") : Args$ = Trim(Left(Args$, FindString(Args$, "{") - 1)) : EndIf
               AddElement(Output())
               Output() = MethodName$ + Args$
             Else
@@ -895,58 +966,316 @@ Procedure FindClassInterfaceFromSource(*Source.SourceFile, Name$, List Output.s(
       EndIf
       
       ; 2) Fields: Protected / Public / Private
-      IsField = #False
-      FieldRest$ = ""
-      If Left(Upper$, 10) = "PROTECTED " Or Left(Upper$, 10) = "PROTECTED	"
-        IsField = #True
-        If IncludePrivate : FieldRest$ = Trim(Mid(LineText$, 11)) : EndIf
-      ElseIf Left(Upper$, 7) = "PUBLIC " Or Left(Upper$, 7) = "PUBLIC	"
+      Protected IsField = #False
+      Protected FieldRest$ = ""
+      If Left(Upper$, 7) = "PUBLIC " Or Left(Upper$, 7) = "PUBLIC	"
         IsField = #True
         FieldRest$ = Trim(Mid(LineText$, 8))
-      ElseIf Left(Upper$, 8) = "PRIVATE " Or Left(Upper$, 8) = "PRIVATE	"
+      ElseIf IncludePrivate And (Left(Upper$, 10) = "PROTECTED " Or Left(Upper$, 10) = "PROTECTED	")
         IsField = #True
-        If IncludePrivate : FieldRest$ = Trim(Mid(LineText$, 9)) : EndIf
+        FieldRest$ = Trim(Mid(LineText$, 11))
+      ElseIf IncludePrivate And (Left(Upper$, 8) = "PRIVATE " Or Left(Upper$, 8) = "PRIVATE	")
+        IsField = #True
+        FieldRest$ = Trim(Mid(LineText$, 9))
       EndIf
       
       If IsField And FieldRest$ <> ""
-        Count = CountString(FieldRest$, ",") + 1
-        For f = 1 To Count
-          SingleField$ = Trim(StringField(FieldRest$, f, ","))
+        Protected Count = CountString(FieldRest$, ",") + 1
+        For fieldIdx = 1 To Count
+          Protected SingleField$ = Trim(StringField(FieldRest$, fieldIdx, ","))
           If SingleField$ <> ""
             AddElement(Output())
             Output() = SingleField$
           EndIf
-        Next f
+        Next fieldIdx
       EndIf
     EndIf
   Next line
+  
+  If Success And ExtendsClass$ <> ""
+    FindClassInterface(ExtendsClass$, Output(), #False, Recursion + 1)
+  EndIf
+  
+  ProcedureReturn Success
+EndProcedure
+
+Procedure FindClassInterfaceFromFile(FilePath$, Name$, List Output.s(), IncludePrivate, Recursion = 0)
+  If Recursion > 15 Or Name$ = "" Or FilePath$ = ""
+    ProcedureReturn #False
+  EndIf
+  
+  Protected NormPath$ = OOP_NormalizePath(FilePath$)
+  If FindMapElement(OOP_VisitedFilesMap(), NormPath$)
+    ProcedureReturn #False
+  EndIf
+  OOP_VisitedFilesMap(NormPath$) = #True
+  
+  Protected FileHandle = ReadFile(#PB_Any, FilePath$)
+  If FileHandle = 0
+    ProcedureReturn #False
+  EndIf
+  
+  Protected Success = #False
+  Protected InsideTargetClass = #False
+  Protected ClassBraceDepth = 0
+  Protected ExtendsClass$ = ""
+  Protected CurrentNamespace$ = ""
+  Protected TargetShort$ = LCase(OOP_GetShortName(Name$))
+  Protected TargetFull$ = LCase(Name$)
+  Protected NewList IncludedFiles.s()
+  Protected BaseDir$ = GetPathPart(FilePath$)
+  Protected fieldIdx.i
+  
+  While Not Eof(FileHandle)
+    Protected LineText$ = Trim(ReadString(FileHandle))
+    
+    If LineText$ = "" Or Left(LineText$, 1) = ";"
+      Continue
+    EndIf
+    
+    Protected Upper$ = UCase(LineText$)
+    
+    ; Collect included files
+    If Left(Upper$, 13) = "XINCLUDEFILE " Or Left(Upper$, 12) = "INCLUDEFILE " Or Left(Upper$, 13) = "XINCLUDEFILE	" Or Left(Upper$, 12) = "INCLUDEFILE	"
+      Protected pQuote1 = FindString(LineText$, Chr(34), 1)
+      If pQuote1 > 0
+        Protected pQuote2 = FindString(LineText$, Chr(34), pQuote1 + 1)
+        If pQuote2 > pQuote1
+          Protected Inc$ = Mid(LineText$, pQuote1 + 1, pQuote2 - pQuote1 - 1)
+          Protected FullInc$ = BaseDir$ + Inc$
+          AddElement(IncludedFiles()) : IncludedFiles() = FullInc$
+        EndIf
+      EndIf
+    EndIf
+    
+    ; Check Namespace
+    If Left(Upper$, 10) = "NAMESPACE " Or Left(Upper$, 10) = "NAMESPACE	"
+      CurrentNamespace$ = OOP_StripBracesAndComments(Mid(LineText$, 11))
+      Continue
+    ElseIf Left(Upper$, 12) = "ENDNAMESPACE"
+      CurrentNamespace$ = ""
+      Continue
+    EndIf
+    
+    ; Check Class start (including 'Abstract Class')
+    Protected pClassPos = FindString(Upper$, "CLASS ")
+    If pClassPos = 0 : pClassPos = FindString(Upper$, "CLASS	") : EndIf
+    If Not InsideTargetClass And pClassPos > 0 And Left(Upper$, 8) <> "ENDCLASS"
+      Protected CurrentClassName$ = Trim(Mid(LineText$, pClassPos + 6))
+      Protected ExtendsPos = FindString(UCase(CurrentClassName$), "EXTENDS ")
+      If ExtendsPos = 0
+        ExtendsPos = FindString(UCase(CurrentClassName$), "EXTENDS	")
+      EndIf
+      
+      If ExtendsPos > 0
+        ExtendsClass$ = OOP_StripBracesAndComments(Trim(Mid(CurrentClassName$, ExtendsPos + 8)))
+        CurrentClassName$ = OOP_StripBracesAndComments(Trim(Left(CurrentClassName$, ExtendsPos - 1)))
+      Else
+        ExtendsClass$ = ""
+        CurrentClassName$ = OOP_StripBracesAndComments(CurrentClassName$)
+      EndIf
+      
+      Protected FullClass$ = LCase(CurrentClassName$)
+      If CurrentNamespace$ <> ""
+        FullClass$ = LCase(CurrentNamespace$ + "::" + CurrentClassName$)
+      EndIf
+      
+      If LCase(CurrentClassName$) = TargetFull$ Or FullClass$ = TargetFull$ Or LCase(CurrentClassName$) = TargetShort$
+        InsideTargetClass = #True
+        Success = #True
+        ClassBraceDepth = CountString(LineText$, "{") - CountString(LineText$, "}")
+        Continue
+      EndIf
+    EndIf
+    
+    If InsideTargetClass
+      If Left(Upper$, 8) = "ENDCLASS"
+        InsideTargetClass = #False
+        Break
+      EndIf
+      
+      If ClassBraceDepth > 0
+        ClassBraceDepth + CountString(LineText$, "{") - CountString(LineText$, "}")
+        If ClassBraceDepth <= 0
+          InsideTargetClass = #False
+          Break
+        EndIf
+      EndIf
+      
+      Protected SemiColon = FindString(LineText$, ";")
+      If SemiColon > 0
+        LineText$ = Trim(Left(LineText$, SemiColon - 1))
+      EndIf
+      Upper$ = UCase(LineText$)
+      
+      ; 1) Methods: [Public|Protected|Private] [Override] Method[.<type>] Name(...)
+      Protected pMethod = FindString(Upper$, "METHOD")
+      If pMethod > 0
+        Protected Prefix$ = Trim(Left(Upper$, pMethod - 1))
+        Protected IsPublic = #True
+        If FindString(Prefix$, "PRIVATE") > 0
+          IsPublic = #False
+        EndIf
+        
+        If IncludePrivate Or IsPublic
+          Protected MethodRest$ = Trim(Mid(LineText$, pMethod + 6))
+          ; Skip return type if present (.i, .s, etc.)
+          If Left(MethodRest$, 1) = "."
+            Protected pSpace = FindString(MethodRest$, " ")
+            If pSpace = 0 : pSpace = FindString(MethodRest$, Chr(9)) : EndIf
+            If pSpace > 0
+              MethodRest$ = Trim(Mid(MethodRest$, pSpace + 1))
+            EndIf
+          EndIf
+          
+          Protected MethodName$ = Trim(StringField(MethodRest$, 1, "("))
+          If Right(MethodName$, 1) = "{" : MethodName$ = Trim(Left(MethodName$, Len(MethodName$) - 1)) : EndIf
+          
+          ; Exclude constructor Init from member access autocomplete
+          If MethodName$ <> "" And LCase(MethodName$) <> "init"
+            If FindString(MethodRest$, "(")
+              Protected Args$ = Mid(MethodRest$, FindString(MethodRest$, "("))
+              If FindString(Args$, "{") : Args$ = Trim(Left(Args$, FindString(Args$, "{") - 1)) : EndIf
+              AddElement(Output())
+              Output() = MethodName$ + Args$
+            Else
+              AddElement(Output())
+              Output() = MethodName$ + "()"
+            EndIf
+          EndIf
+        EndIf
+        Continue
+      EndIf
+      
+      ; 2) Fields: Protected / Public / Private
+      Protected IsField = #False
+      Protected FieldRest$ = ""
+      If Left(Upper$, 7) = "PUBLIC " Or Left(Upper$, 7) = "PUBLIC	"
+        IsField = #True
+        FieldRest$ = Trim(Mid(LineText$, 8))
+      ElseIf IncludePrivate And (Left(Upper$, 10) = "PROTECTED " Or Left(Upper$, 10) = "PROTECTED	")
+        IsField = #True
+        FieldRest$ = Trim(Mid(LineText$, 11))
+      ElseIf IncludePrivate And (Left(Upper$, 8) = "PRIVATE " Or Left(Upper$, 8) = "PRIVATE	")
+        IsField = #True
+        FieldRest$ = Trim(Mid(LineText$, 9))
+      EndIf
+      
+      If IsField And FieldRest$ <> ""
+        Protected Count = CountString(FieldRest$, ",") + 1
+        For fieldIdx = 1 To Count
+          Protected SingleField$ = Trim(StringField(FieldRest$, fieldIdx, ","))
+          If SingleField$ <> ""
+            AddElement(Output())
+            Output() = SingleField$
+          EndIf
+        Next fieldIdx
+      EndIf
+    EndIf
+  Wend
+  CloseFile(FileHandle)
+  
+  ; If target was found and extends another class, resolve the parent
+  If Success And ExtendsClass$ <> ""
+    FindClassInterface(ExtendsClass$, Output(), #False, Recursion + 1)
+  EndIf
+  
+  ; If not found in this file, search included files recursively
+  If Not Success
+    ForEach IncludedFiles()
+      If FindClassInterfaceFromFile(IncludedFiles(), Name$, Output(), IncludePrivate, Recursion + 1)
+        Success = #True
+        Break
+      EndIf
+    Next IncludedFiles()
+  EndIf
   
   ProcedureReturn Success
 EndProcedure
 
 Procedure FindClassInterface(Name$, List Output.s(), IncludePrivate = #True, Recursion = 0)
-  If Recursion > 50 Or Name$ = ""
+  If Recursion > 15 Or Name$ = ""
     ProcedureReturn #False
   EndIf
   
-  ; Check active source first
+  Protected ClassKey$ = LCase(OOP_GetShortName(Name$))
+  If ClassKey$ = ""
+    ProcedureReturn #False
+  EndIf
+  
+  ; Fast bailout for standard primitive types
+  Select ClassKey$
+    Case "i", "s", "l", "b", "w", "q", "f", "d", "c", "u", "a", "ascii", "unicode", "string", "integer", "long", "byte", "word", "quad", "float", "double"
+      ProcedureReturn #False
+  EndSelect
+  
+  If Recursion = 0
+    ClearMap(OOP_VisitedFilesMap())
+    ClearMap(OOP_VisitedClassesMap())
+  EndIf
+  
+  ; Prevent circular inheritance recursion on the same class
+  If FindMapElement(OOP_VisitedClassesMap(), ClassKey$)
+    ProcedureReturn #False
+  EndIf
+  OOP_VisitedClassesMap(ClassKey$) = #True
+  
+  ; 1. Check active source first
   If *ActiveSource
     If FindClassInterfaceFromSource(*ActiveSource, Name$, Output(), IncludePrivate, Recursion)
       ProcedureReturn #True
     EndIf
   EndIf
   
-  ; Check other open files
-  Current = ListIndex(FileList())
+  ; 2. Check other open files (using snapshot to avoid list position corruption)
+  Protected NewList OpenSources.i()
+  PushListPosition(FileList())
   ForEach FileList()
     If @FileList() <> *ProjectInfo And @FileList() <> *ActiveSource
-      If FindClassInterfaceFromSource(@FileList(), Name$, Output(), IncludePrivate, Recursion)
-        SelectElement(FileList(), Current)
+      AddElement(OpenSources())
+      OpenSources() = @FileList()
+    EndIf
+  Next FileList()
+  PopListPosition(FileList())
+  
+  ForEach OpenSources()
+    Protected *Src.SourceFile = OpenSources()
+    If *Src
+      If FindClassInterfaceFromSource(*Src, Name$, Output(), IncludePrivate, Recursion)
         ProcedureReturn #True
       EndIf
     EndIf
-  Next FileList()
-  SelectElement(FileList(), Current)
+  Next OpenSources()
+  
+  ; 3. Scan included files from *ActiveSource
+  If *ActiveSource
+    Protected BaseDir$ = GetPathPart(*ActiveSource\FileName$)
+    If BaseDir$ = "" : BaseDir$ = GetCurrentDirectory() : EndIf
+    Protected LineCount = ScintillaSendMessage(*ActiveSource\EditorGadget, #SCI_GETLINECOUNT, 0, 0)
+    Protected scanLine.i
+    Protected NewList ActiveIncFiles.s()
+    For scanLine = 0 To LineCount - 1
+      Protected LineText$ = Trim(GetLine(scanLine, *ActiveSource))
+      Protected Upper$ = UCase(LineText$)
+      If Left(Upper$, 13) = "XINCLUDEFILE " Or Left(Upper$, 12) = "INCLUDEFILE " Or Left(Upper$, 13) = "XINCLUDEFILE	" Or Left(Upper$, 12) = "INCLUDEFILE	"
+        Protected pQuote1 = FindString(LineText$, Chr(34), 1)
+        If pQuote1 > 0
+          Protected pQuote2 = FindString(LineText$, Chr(34), pQuote1 + 1)
+          If pQuote2 > pQuote1
+            Protected Inc$ = Mid(LineText$, pQuote1 + 1, pQuote2 - pQuote1 - 1)
+            AddElement(ActiveIncFiles())
+            ActiveIncFiles() = BaseDir$ + Inc$
+          EndIf
+        EndIf
+      EndIf
+    Next scanLine
+    
+    ForEach ActiveIncFiles()
+      If FindClassInterfaceFromFile(ActiveIncFiles(), Name$, Output(), IncludePrivate, Recursion + 1)
+        ProcedureReturn #True
+      EndIf
+    Next ActiveIncFiles()
+  EndIf
   
   ProcedureReturn #False
 EndProcedure
@@ -963,7 +1292,7 @@ EndProcedure
 Procedure FindInterface(Name$, List Output.s())
   If FindStructureInterface(Name$, #ITEM_Interface, Output(), 0)
     ProcedureReturn #True
-  ElseIf FindClassInterface(Name$, Output(), #False)
+  ElseIf FindClassInterface(Name$, Output(), #True)
     ProcedureReturn #True
   EndIf
   ProcedureReturn #False
@@ -997,7 +1326,6 @@ Procedure.s StructureFieldName(Entry$)
   EndIf
   
   Entry$ = RemoveString(Entry$, " ")   ; now cut whitespace
-  Entry$ = RemoveString(Entry$, "*")   ; * is not present when accessing pointer structure items!
   Entry$ = StringField(Entry$, 1, "[") ; cut array stuff
   Entry$ = StringField(Entry$, 1, "(") ; cut dynamic array stuff
   Entry$ = StringField(Entry$, 1, "{") ; cut fixed string stuff

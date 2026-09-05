@@ -1,4 +1,4 @@
-﻿; --------------------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------------------
 ;  Copyright (c) Fantaisie Software. All rights reserved.
 ;  Dual licensed under the GPL and Fantaisie Software licenses.
 ;  See LICENSE and LICENSE-FANTAISIE in the project root for license information.
@@ -1269,6 +1269,441 @@ Procedure.s GenerateQuickHelpFromStructure(Word$, *BaseItem.SourceItem, BaseItem
   ProcedureReturn Message$
 EndProcedure
 
+Procedure OOP_ShowCallTip(callTipText$)
+  Static LastTip$
+  If *ActiveSource And *ActiveSource\EditorGadget And IsGadget(*ActiveSource\EditorGadget)
+    If callTipText$ <> "" And callTipText$ <> LastTip$
+      LastTip$ = callTipText$
+      Protected pos = ScintillaSendMessage(*ActiveSource\EditorGadget, #SCI_GETCURRENTPOS, 0, 0)
+      ScintillaSendMessage(*ActiveSource\EditorGadget, #SCI_CALLTIPSHOW, pos, ToAscii(callTipText$))
+    EndIf
+  EndIf
+EndProcedure
+
+Procedure OOP_CancelCallTip()
+  Static LastTip$
+  If *ActiveSource And *ActiveSource\EditorGadget And IsGadget(*ActiveSource\EditorGadget)
+    If ScintillaSendMessage(*ActiveSource\EditorGadget, #SCI_CALLTIPACTIVE, 0, 0)
+      ScintillaSendMessage(*ActiveSource\EditorGadget, #SCI_CALLTIPCANCEL, 0, 0)
+    EndIf
+  EndIf
+  LastTip$ = ""
+EndProcedure
+
+Procedure.s OOP_ExtractMethodFromFile(filePath.s, Map visitedFiles.i(), targetNamespace.s, targetClass.s, methodName.s, recursionDepth.i = 0)
+  If filePath = "" Or recursionDepth > 4 : ProcedureReturn "" : EndIf
+  filePath = ResolveRelativePath(SourcePath$, filePath)
+  Protected normPath.s = UCase(filePath)
+  If normPath = "" Or FindMapElement(visitedFiles(), normPath)
+    ProcedureReturn ""
+  EndIf
+  visitedFiles(normPath) = 1
+  
+  If FileSize(filePath) <= 0
+    ProcedureReturn ""
+  EndIf
+  
+  Protected file.i = ReadFile(#PB_Any, filePath)
+  If Not file
+    ProcedureReturn ""
+  EndIf
+  
+  Protected fmt.i = ReadStringFormat(file)
+  If fmt = #PB_Ascii : fmt = #PB_UTF8 : EndIf
+  
+  Protected fileDir.s = GetPathPart(filePath)
+  Protected currentNS.s = "", nsBraceDepth.i = 0, inTargetClass.b = #False, classBraceDepth.i = 0
+  Protected parentClass.s = "", resultProto.s = "", rawLine.s, upper.s
+  Protected pM.i, mRest.s, pOpenP.i, mName.s, pDot.i, pCloseP.i
+  Protected nsName.s, pBrace.i, pCls.i, clsRest.s, pExt.i, clsName.s, nsMatch.b
+  Protected pQ1.i, pQ2.i, incPath.s, finalInc.s, incRes.s
+  Protected pNs.s, pClsName.s, pCol.i
+  
+  While Not Eof(file)
+    rawLine = Trim(ReadString(file, fmt))
+    upper = UCase(rawLine)
+    
+    ; Track Namespace depth
+    If currentNS <> ""
+      If CountString(rawLine, "{") > 0
+        nsBraceDepth + CountString(rawLine, "{")
+      EndIf
+      If CountString(rawLine, "}") > 0
+        nsBraceDepth - CountString(rawLine, "}")
+        If nsBraceDepth <= 0
+          currentNS = ""
+          nsBraceDepth = 0
+        EndIf
+      EndIf
+    EndIf
+    
+    ; Track Class depth
+    If inTargetClass
+      If CountString(rawLine, "{") > 0
+        classBraceDepth + CountString(rawLine, "{")
+      EndIf
+      If CountString(rawLine, "}") > 0
+        classBraceDepth - CountString(rawLine, "}")
+        If classBraceDepth <= 0
+          inTargetClass = #False
+          classBraceDepth = 0
+        EndIf
+      EndIf
+      
+      ; Check Method inside target class
+      If inTargetClass And (Left(upper, 7) = "METHOD " Or Left(upper, 7) = "METHOD	" Or FindString(upper, " METHOD ") > 0 Or FindString(upper, " METHOD	") > 0)
+        pM = FindString(upper, "METHOD ")
+        If pM = 0 : pM = FindString(upper, "METHOD	") : EndIf
+        If pM > 0
+          mRest = Trim(Mid(rawLine, pM + 7))
+          pOpenP = FindString(mRest, "(")
+          If pOpenP > 0
+            mName = Trim(Left(mRest, pOpenP - 1))
+            ; Strip return type if Method.type Name(...)
+            pDot = FindString(mName, " ")
+            If pDot = 0 : pDot = FindString(mName, Chr(9)) : EndIf
+            If pDot > 0
+              mName = Trim(Mid(mName, pDot + 1))
+            EndIf
+            If CompareMemoryString(@mName, @methodName, #PB_String_NoCaseAscii) = #PB_String_Equal
+              ; Found method! Extract full prototype
+              pCloseP = FindString(mRest, ")")
+              If pCloseP > 0
+                resultProto = targetClass + "::" + mName + Mid(mRest, pOpenP, pCloseP - pOpenP + 1)
+              Else
+                resultProto = targetClass + "::" + mName + Mid(mRest, pOpenP)
+              EndIf
+              Break
+            EndIf
+          EndIf
+        EndIf
+      EndIf
+    EndIf
+    
+    ; 1. Check Namespace declaration
+    If Left(upper, 10) = "NAMESPACE " Or Left(upper, 10) = "NAMESPACE	"
+      nsName = Trim(Mid(rawLine, 11))
+      pBrace = FindString(nsName, "{")
+      If pBrace > 0
+        nsName = Trim(Left(nsName, pBrace - 1))
+      EndIf
+      If nsName <> ""
+        currentNS = nsName
+        nsBraceDepth = 1
+      EndIf
+      
+    ; 2. Check Class declaration
+    ElseIf (Left(upper, 6) = "CLASS " Or Left(upper, 6) = "CLASS	" Or FindString(upper, " CLASS ") > 0) And Left(upper, 8) <> "ENDCLASS"
+      pCls = FindString(upper, "CLASS ")
+      If pCls = 0 : pCls = FindString(upper, "CLASS	") : EndIf
+      If pCls > 0
+        clsRest = Trim(Mid(rawLine, pCls + 6))
+        If Right(clsRest, 1) = "{"
+          clsRest = Trim(Left(clsRest, Len(clsRest) - 1))
+        EndIf
+        pExt = FindString(UCase(clsRest), "EXTENDS ")
+        If pExt = 0 : pExt = FindString(UCase(clsRest), "EXTENDS	") : EndIf
+        clsName = ""
+        If pExt > 0
+          clsName = Trim(Left(clsRest, pExt - 1))
+          parentClass = Trim(Mid(clsRest, pExt + 8))
+        Else
+          clsName = clsRest
+          parentClass = ""
+        EndIf
+        
+        nsMatch = #False
+        If targetNamespace = "" Or CompareMemoryString(@currentNS, @targetNamespace, #PB_String_NoCaseAscii) = #PB_String_Equal
+          nsMatch = #True
+        EndIf
+        
+        If nsMatch And CompareMemoryString(@clsName, @targetClass, #PB_String_NoCaseAscii) = #PB_String_Equal
+          inTargetClass = #True
+          classBraceDepth = 1
+        EndIf
+      EndIf
+      
+    ; 3. Check IncludeFile / XIncludeFile
+    ElseIf Left(upper, 12) = "INCLUDEFILE " Or Left(upper, 13) = "XINCLUDEFILE " Or Left(upper, 12) = "INCLUDEFILE	" Or Left(upper, 13) = "XINCLUDEFILE	"
+      pQ1 = FindString(rawLine, Chr(34))
+      pQ2 = 0
+      If pQ1 > 0
+        pQ2 = FindString(rawLine, Chr(34), pQ1 + 1)
+      EndIf
+      If pQ1 > 0 And pQ2 > pQ1
+        incPath = Mid(rawLine, pQ1 + 1, pQ2 - pQ1 - 1)
+        incPath = ReplaceString(incPath, "/", "\")
+        finalInc = incPath
+        If Mid(incPath, 2, 1) <> ":" And Left(incPath, 2) <> "\\"
+          finalInc = fileDir + incPath
+          If FileSize(finalInc) <= 0 And SourcePath$ <> ""
+            If FileSize(SourcePath$ + incPath) > 0
+              finalInc = SourcePath$ + incPath
+            EndIf
+          EndIf
+        EndIf
+        incRes = OOP_ExtractMethodFromFile(finalInc, visitedFiles(), targetNamespace, targetClass, methodName, recursionDepth + 1)
+        If incRes <> ""
+          resultProto = incRes
+          Break
+        EndIf
+      EndIf
+    EndIf
+  Wend
+  
+  CloseFile(file)
+  
+  ; If not found in current class and class has parent, search in parent class
+  If resultProto = "" And parentClass <> "" And recursionDepth < 4
+    pNs = ""
+    pClsName = parentClass
+    pCol = FindString(parentClass, "::")
+    If pCol > 0
+      pNs = Left(parentClass, pCol - 1)
+      pClsName = Mid(parentClass, pCol + 2)
+    EndIf
+    resultProto = OOP_ExtractMethodFromFile(filePath, visitedFiles(), pNs, pClsName, methodName, recursionDepth + 1)
+  EndIf
+  
+  ProcedureReturn resultProto
+EndProcedure
+
+Procedure.s OOP_ResolveMethodPrototype(CallerExpr$, Line)
+  If *ActiveSource = 0 Or CallerExpr$ = ""
+    ProcedureReturn ""
+  EndIf
+  
+  Protected upperExpr$ = UCase(CallerExpr$)
+  Protected targetClass$ = "", targetNamespace$ = "", methodName$ = ""
+  Protected encClass$ = "", l.i, lText$, uText$, pExt.i, extPart$, pCol.i
+  Protected colCount.i, activeDir$, scanL.i, totalL.i
+  Protected currentNS$ = "", nsBraceDepth.i = 0, inTargetClass.b = #False, classBraceDepth.i = 0, parentClass$ = ""
+  Protected lineText$, upper$, pM.i, mRest$, pOpenP.i, mName$, pDot.i, pCloseP.i
+  Protected nsName$, pBrace.i, pCls.i, clsRest$, clsName$, nsMatch.b
+  Protected pQ1.i, pQ2.i, incPath$, finalInc$, incRes$
+  Protected pNs2$, pClsName2$, pCol2.i
+  NewMap visited.i()
+  
+  ; Case 1: Super::Method or Super\Method
+  If Left(upperExpr$, 7) = "SUPER::"
+    methodName$ = Mid(CallerExpr$, 8)
+  ElseIf Left(upperExpr$, 6) = "SUPER\"
+    methodName$ = Mid(CallerExpr$, 7)
+  EndIf
+  If methodName$ <> ""
+    ; Find enclosing class and its parent
+    encClass$ = AutoComplete_FindEnclosingClass(Line)
+    If encClass$ <> ""
+      ; Scan up to find Extends of this class
+      For l = Line To 0 Step -1
+        lText$ = Trim(GetLine(l, *ActiveSource))
+        uText$ = UCase(lText$)
+        If (Left(uText$, 6) = "CLASS " Or Left(uText$, 6) = "CLASS	" Or FindString(uText$, " CLASS ") > 0) And Left(uText$, 8) <> "ENDCLASS"
+          pExt = FindString(uText$, "EXTENDS ")
+          If pExt = 0 : pExt = FindString(uText$, "EXTENDS	") : EndIf
+          If pExt > 0
+            extPart$ = Trim(Mid(lText$, pExt + 8))
+            If Right(extPart$, 1) = "{" : extPart$ = Trim(Left(extPart$, Len(extPart$) - 1)) : EndIf
+            pCol = FindString(extPart$, "::")
+            If pCol > 0
+              targetNamespace$ = Left(extPart$, pCol - 1)
+              targetClass$ = Mid(extPart$, pCol + 2)
+            Else
+              targetClass$ = extPart$
+            EndIf
+            Break
+          EndIf
+        EndIf
+      Next l
+    EndIf
+    
+  ; Case 2: This\Method
+  ElseIf Left(upperExpr$, 5) = "THIS\"
+    methodName$ = Mid(CallerExpr$, 6)
+    targetClass$ = AutoComplete_FindEnclosingClass(Line)
+    
+  ; Case 3: Namespace::Class::Method or Class::Method
+  ElseIf FindString(CallerExpr$, "::") > 0
+    colCount = CountString(CallerExpr$, "::")
+    If colCount >= 2
+      targetNamespace$ = StringField(CallerExpr$, 1, "::")
+      targetClass$ = StringField(CallerExpr$, 2, "::")
+      methodName$ = StringField(CallerExpr$, 3, "::")
+    Else
+      targetClass$ = StringField(CallerExpr$, 1, "::")
+      methodName$ = StringField(CallerExpr$, 2, "::")
+    EndIf
+  EndIf
+  
+  If targetClass$ = "" Or methodName$ = ""
+    ProcedureReturn ""
+  EndIf
+  
+  ; 1. Search in active buffer
+  If *ActiveSource\FileName$ <> ""
+    activeDir$ = GetPathPart(*ActiveSource\FileName$)
+    visited(UCase(*ActiveSource\FileName$)) = 1
+  Else
+    activeDir$ = SourcePath$
+  EndIf
+  
+  ; Scan active buffer lines
+  totalL = ScintillaSendMessage(*ActiveSource\EditorGadget, #SCI_GETLINECOUNT, 0, 0)
+  
+  For scanL = 0 To totalL - 1
+    lineText$ = Trim(GetLine(scanL, *ActiveSource))
+    upper$ = UCase(lineText$)
+    
+    If currentNS$ <> ""
+      If CountString(lineText$, "{") > 0 : nsBraceDepth + CountString(lineText$, "{") : EndIf
+      If CountString(lineText$, "}") > 0
+        nsBraceDepth - CountString(lineText$, "}")
+        If nsBraceDepth <= 0 : currentNS$ = "" : nsBraceDepth = 0 : EndIf
+      EndIf
+    EndIf
+    
+    If inTargetClass
+      If CountString(lineText$, "{") > 0 : classBraceDepth + CountString(lineText$, "{") : EndIf
+      If CountString(lineText$, "}") > 0
+        classBraceDepth - CountString(lineText$, "}")
+        If classBraceDepth <= 0 : inTargetClass = #False : classBraceDepth = 0 : EndIf
+      EndIf
+      
+      If inTargetClass And (Left(upper$, 7) = "METHOD " Or Left(upper$, 7) = "METHOD	" Or FindString(upper$, " METHOD ") > 0 Or FindString(upper$, " METHOD	") > 0)
+        pM = FindString(upper$, "METHOD ")
+        If pM = 0 : pM = FindString(upper$, "METHOD	") : EndIf
+        If pM > 0
+          mRest$ = Trim(Mid(lineText$, pM + 7))
+          pOpenP = FindString(mRest$, "(")
+          If pOpenP > 0
+            mName$ = Trim(Left(mRest$, pOpenP - 1))
+            pDot = FindString(mName$, " ")
+            If pDot = 0 : pDot = FindString(mName$, Chr(9)) : EndIf
+            If pDot > 0 : mName$ = Trim(Mid(mName$, pDot + 1)) : EndIf
+            If CompareMemoryString(@mName$, @methodName$, #PB_String_NoCaseAscii) = #PB_String_Equal
+              pCloseP = FindString(mRest$, ")")
+              If pCloseP > 0
+                ProcedureReturn targetClass$ + "::" + mName$ + Mid(mRest$, pOpenP, pCloseP - pOpenP + 1)
+              Else
+                ProcedureReturn targetClass$ + "::" + mName$ + Mid(mRest$, pOpenP)
+              EndIf
+            EndIf
+          EndIf
+        EndIf
+      EndIf
+    EndIf
+    
+    If Left(upper$, 10) = "NAMESPACE " Or Left(upper$, 10) = "NAMESPACE	"
+      nsName$ = Trim(Mid(lineText$, 11))
+      pBrace = FindString(nsName$, "{")
+      If pBrace > 0 : nsName$ = Trim(Left(nsName$, pBrace - 1)) : EndIf
+      If nsName$ <> "" : currentNS$ = nsName$ : nsBraceDepth = 1 : EndIf
+      
+    ElseIf (Left(upper$, 6) = "CLASS " Or Left(upper$, 6) = "CLASS	" Or FindString(upper$, " CLASS ") > 0) And Left(upper$, 8) <> "ENDCLASS"
+      pCls = FindString(upper$, "CLASS ")
+      If pCls = 0 : pCls = FindString(upper$, "CLASS	") : EndIf
+      If pCls > 0
+        clsRest$ = Trim(Mid(lineText$, pCls + 6))
+        If Right(clsRest$, 1) = "{" : clsRest$ = Trim(Left(clsRest$, Len(clsRest$) - 1)) : EndIf
+        pExt = FindString(UCase(clsRest$), "EXTENDS ")
+        If pExt = 0 : pExt = FindString(UCase(clsRest$), "EXTENDS	") : EndIf
+        clsName$ = ""
+        If pExt > 0
+          clsName$ = Trim(Left(clsRest$, pExt - 1))
+          parentClass$ = Trim(Mid(clsRest$, pExt + 8))
+        Else
+          clsName$ = clsRest$
+          parentClass$ = ""
+        EndIf
+        
+        nsMatch = #False
+        If targetNamespace$ = "" Or CompareMemoryString(@currentNS$, @targetNamespace$, #PB_String_NoCaseAscii) = #PB_String_Equal
+          nsMatch = #True
+        EndIf
+        
+        If nsMatch And CompareMemoryString(@clsName$, @targetClass$, #PB_String_NoCaseAscii) = #PB_String_Equal
+          inTargetClass = #True
+          classBraceDepth = 1
+        EndIf
+      EndIf
+      
+    ElseIf Left(upper$, 12) = "INCLUDEFILE " Or Left(upper$, 13) = "XINCLUDEFILE " Or Left(upper$, 12) = "INCLUDEFILE	" Or Left(upper$, 13) = "XINCLUDEFILE	"
+      pQ1 = FindString(lineText$, Chr(34))
+      pQ2 = 0
+      If pQ1 > 0 : pQ2 = FindString(lineText$, Chr(34), pQ1 + 1) : EndIf
+      If pQ1 > 0 And pQ2 > pQ1
+        incPath$ = Mid(lineText$, pQ1 + 1, pQ2 - pQ1 - 1)
+        incPath$ = ReplaceString(incPath$, "/", "\")
+        finalInc$ = incPath$
+        If Mid(incPath$, 2, 1) <> ":" And Left(incPath$, 2) <> "\\"
+          finalInc$ = activeDir$ + incPath$
+          If FileSize(finalInc$) <= 0 And SourcePath$ <> ""
+            If FileSize(SourcePath$ + incPath$) > 0 : finalInc$ = SourcePath$ + incPath$ : EndIf
+          EndIf
+        EndIf
+        incRes$ = OOP_ExtractMethodFromFile(finalInc$, visited(), targetNamespace$, targetClass$, methodName$, 1)
+        If incRes$ <> ""
+          ProcedureReturn incRes$
+        EndIf
+      EndIf
+    EndIf
+  Next scanL
+  
+  ; 2. If parent class exists and not resolved yet, search in parent class
+  If parentClass$ <> ""
+    pNs2$ = ""
+    pClsName2$ = parentClass$
+    pCol2 = FindString(parentClass$, "::")
+    If pCol2 > 0
+      pNs2$ = Left(parentClass$, pCol2 - 1)
+      pClsName2$ = Mid(parentClass$, pCol2 + 2)
+    EndIf
+    ClearMap(visited())
+    If *ActiveSource\FileName$ <> ""
+      visited(UCase(*ActiveSource\FileName$)) = 1
+    EndIf
+    For scanL = 0 To totalL - 1
+      lineText$ = Trim(GetLine(scanL, *ActiveSource))
+      upper$ = UCase(lineText$)
+      If Left(upper$, 12) = "INCLUDEFILE " Or Left(upper$, 13) = "XINCLUDEFILE " Or Left(upper$, 12) = "INCLUDEFILE	" Or Left(upper$, 13) = "XINCLUDEFILE	"
+        pQ1 = FindString(lineText$, Chr(34))
+        pQ2 = 0
+        If pQ1 > 0 : pQ2 = FindString(lineText$, Chr(34), pQ1 + 1) : EndIf
+        If pQ1 > 0 And pQ2 > pQ1
+          incPath$ = Mid(lineText$, pQ1 + 1, pQ2 - pQ1 - 1)
+          incPath$ = ReplaceString(incPath$, "/", "\")
+          finalInc$ = incPath$
+          If Mid(incPath$, 2, 1) <> ":" And Left(incPath$, 2) <> "\\"
+            finalInc$ = activeDir$ + incPath$
+            If FileSize(finalInc$) <= 0 And SourcePath$ <> ""
+              If FileSize(SourcePath$ + incPath$) > 0 : finalInc$ = SourcePath$ + incPath$ : EndIf
+            EndIf
+          EndIf
+          incRes$ = OOP_ExtractMethodFromFile(finalInc$, visited(), pNs2$, pClsName2$, methodName$, 1)
+          If incRes$ <> ""
+            ProcedureReturn incRes$
+          EndIf
+        EndIf
+      EndIf
+    Next scanL
+  EndIf
+  
+  ; 3. Search in other open files in IDE
+  PushListPosition(FileList())
+  ForEach FileList()
+    If @FileList() <> *ActiveSource And FileList()\FileName$ <> ""
+      incRes$ = OOP_ExtractMethodFromFile(FileList()\FileName$, visited(), targetNamespace$, targetClass$, methodName$, 1)
+      If incRes$ <> ""
+        PopListPosition(FileList())
+        ProcedureReturn incRes$
+      EndIf
+    EndIf
+  Next
+  PopListPosition(FileList())
+  
+  ProcedureReturn ""
+EndProcedure
+
 Procedure.s GenerateQuickHelpText(Line$, Word$, Line, Column)
   
   ; For the structure and prototype check we must ensure that the line data is up to date
@@ -1276,6 +1711,14 @@ Procedure.s GenerateQuickHelpText(Line$, Word$, Line, Column)
   If ScanLine(*ActiveSource, line)
     UpdateFolding(*ActiveSource, line-1, line+2)
     *ActiveSource\ParserDataChanged = #True  ; defere any updating to when the current line changes
+  EndIf
+  
+  ; Check if it is an OOP method call (Super::, This\, Class::, Var\)
+  If FindString(Word$, "::") > 0 Or FindString(Word$, "\") > 0 Or Left(UCase(Word$), 5) = "SUPER"
+    Protected oopHelp$ = OOP_ResolveMethodPrototype(Word$, Line)
+    If oopHelp$ <> ""
+      ProcedureReturn oopHelp$
+    EndIf
   EndIf
   
   ; Check if it is a structured item first
@@ -1397,10 +1840,14 @@ Procedure.s FindEnclosingFunction(Line$, Cursor, *StartPosition.INTEGER, *Parame
       QuickHelpStack(Stack)\Parameter + 1
       *Pointer + 1
       
-    ElseIf ValidCharacters(*Pointer\a)
+    ElseIf ValidCharacters(*Pointer\a) Or *Pointer\a = '\' Or (*Pointer\a = ':' And PeekA(*Pointer+1) = ':')
       *Start = *Pointer
-      While ValidCharacters(*Pointer\a)
-        *Pointer + 1
+      While ValidCharacters(*Pointer\a) Or *Pointer\a = '\' Or (*Pointer\a = ':' And PeekA(*Pointer+1) = ':')
+        If *Pointer\a = ':' And PeekA(*Pointer+1) = ':'
+          *Pointer + 2
+        Else
+          *Pointer + 1
+        EndIf
       Wend
       QuickHelpStack(Stack)\Word$ = PeekAsciiLength(*Start, *Pointer-*Start)
       QuickHelpStack(Stack)\Position = *Start-*LineStart
@@ -1437,8 +1884,9 @@ EndProcedure
 Procedure QuickHelpFromLine(line, cursorposition) ; position is 0 based!
   Shared StatusMessageTimeout.q                   ; shared for the special access in QuickHelpFromLine()
   
-  If *ActiveSource\IsCode = 0
+  If *ActiveSource = 0 Or *ActiveSource\IsCode = 0
     ChangeStatus("", 0)
+    OOP_CancelCallTip()
     ProcedureReturn
   EndIf
   
@@ -1456,6 +1904,7 @@ Procedure QuickHelpFromLine(line, cursorposition) ; position is 0 based!
     
     If Message$ = "" Or FindString(Message$, "(", 1) = 0 Or FindString(Message$, ")", 1) = 0
       ChangeStatus(Message$, 0)
+      OOP_CancelCallTip()
       
     Else
       ; now we check for the argument under the cursor to mark it...
@@ -1493,10 +1942,8 @@ Procedure QuickHelpFromLine(line, cursorposition) ; position is 0 based!
               While *Cursor\c And *Cursor\c <> '"'
                 If *Cursor\c = '\' And PeekC(*Cursor + SizeOf(Character)) <> 0
                   *Cursor\c = ' '
-                  *Cursor + SizeOf(Character)
-                  *Cursor\c = ' '
-                  *Cursor + SizeOf(Character)
                   position + 2
+                  *Cursor + (2 * SizeOf(Character))
                 Else
                   *Cursor\c = ' '
                   position + 1
@@ -1531,6 +1978,7 @@ Procedure QuickHelpFromLine(line, cursorposition) ; position is 0 based!
       
       If Right(RTrim(Test$), 1) = "(" ; the function had no parameters '()'
         ChangeStatus(Message$, 0)
+        OOP_ShowCallTip(Message$)
         
       Else
         
@@ -1542,6 +1990,7 @@ Procedure QuickHelpFromLine(line, cursorposition) ; position is 0 based!
         
         If position = 0 ; something did not match here!
           ChangeStatus(Message$, 0)
+          OOP_ShowCallTip(Message$)
           
         Else
           Endposition = FindString(Test$, ",", position+1)
@@ -1556,6 +2005,14 @@ Procedure QuickHelpFromLine(line, cursorposition) ; position is 0 based!
           While Mid(Message$, endposition-1, 1) = " " Or Mid(Message$, endposition-1, 1) = "," Or Mid(Message$, endposition-1, 1) = "[" Or Mid(Message$, endposition-1, 1) = "]"
             Endposition - 1
           Wend
+          
+          ; Display floating CallTip directly under text cursor
+          If position > 0 And Endposition > position
+            callTipText$ = Left(Message$, position) + "-> " + Mid(Message$, position+1, Endposition-position-1) + " <-" + Right(Message$, Len(Message$)-Endposition+1)
+            OOP_ShowCallTip(callTipText$)
+          Else
+            OOP_ShowCallTip(Message$)
+          EndIf
           
           ; on windows, we make the thing ownerdrawn to draw the current argument in bold
           ;
@@ -1599,13 +2056,7 @@ Procedure QuickHelpFromLine(line, cursorposition) ; position is 0 based!
                   If Frame
                     LabelList = gtk_container_get_children_(Frame)
                     If LabelList
-                      Label = g_list_nth_data_(LabelList, 0)
-                      
-                      If Label ; found it
-                        gtk_label_set_markup_(Label, ToAscii(Message$))
-                      EndIf
-                      
-                      g_list_free_(LabelList)
+                      gtk_label_set_markup_(LabelList\data, ToAscii(Message$))
                     EndIf
                   EndIf
                   g_list_free_(FrameList)
@@ -1640,11 +2091,11 @@ Procedure QuickHelpFromLine(line, cursorposition) ; position is 0 based!
     EndIf
     
     ChangeStatus(Message$, 0)
+    OOP_CancelCallTip()
     
   EndIf
   
 EndProcedure
-
 
 ; This is the same idea as base 64, but not the same, as directly the line states
 ; are encoded like this

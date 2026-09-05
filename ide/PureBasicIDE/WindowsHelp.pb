@@ -1,4 +1,4 @@
-﻿; --------------------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------------------
 ;  Copyright (c) Fantaisie Software. All rights reserved.
 ;  Dual licensed under the GPL and Fantaisie Software licenses.
 ;  See LICENSE and LICENSE-FANTAISIE in the project root for license information.
@@ -180,6 +180,12 @@ CompilerIf #CompileWindows
   
   
   Procedure DisplayHelp(CurrentWord$)
+    
+    Protected OOPPage$ = GetOOPHelpPage(CurrentWord$)
+    If OOPPage$ <> ""
+      OpenOOPHelp(OOPPage$)
+      ProcedureReturn
+    EndIf
     
     If *ActiveSource\EnableASM And IsASMKeyword(CurrentWord$) And Asc(UCase(CurrentWord$)) = 'F' And FileSize(PureBasicPath$+"Help\ASMFPU.hlp") > 0
       OpenHelp(PureBasicPath$+"Help\ASMFPU.hlp", CurrentWord$)

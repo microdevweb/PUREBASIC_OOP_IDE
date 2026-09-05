@@ -90,6 +90,6 @@ Define *txt.UITextBox = New UITextBox(150, 20, 250, 35, "Produit ABC")
 ---
 
 ## 4. Statut Actuel du Projet
-- ✅ **Moteur de Transpilation** ([compiler/transpiler.pb](file:///c:/PB/PUREBASIC_OOP_WORKSPACE/compiler/transpiler.pb)) opérationnel avec héritage (`Extends`), polymorphisme VTable ordonnée, `Super::` et constructeurs.
+- ✅ **Moteur de Transpilation** ([compiler/transpiler.pb](file:///c:/PB/PUREBASIC_OOP_WORKSPACE/compiler/transpiler.pb)) opérationnel avec héritage (`Extends`), polymorphisme VTable ordonnée, `Super\` et constructeurs.
 - ✅ **Tests Polymorphisme** ([src/test_polymorphisme.pbo](file:///c:/PB/PUREBASIC_OOP_WORKSPACE/src/test_polymorphisme.pbo)) validés à 100% avec `pbcompiler.exe`.
 - ✅ **Manuels & Documentation PDF/MD** à jour ([doc/PB_OOP_manuel_FR.pdf](file:///c:/PB/PUREBASIC_OOP_WORKSPACE/doc/PB_OOP_manuel_FR.pdf)).

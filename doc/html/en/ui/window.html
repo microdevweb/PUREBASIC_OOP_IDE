@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Window Class - PureBasic OOP Documentation</title>
+  <link rel='stylesheet' href='../../css/doc_theme.css'>
+</head>
+<body>
+  <header class='doc-header'>
+    <a href='../index.html' class='brand-container'>
+      <img src='../../assets/PB_OOP_LOGO.jpeg' alt='Logo' class='brand-logo'>
+      <span class='brand-title'>PureBasic OOP</span>
+      <span class='brand-version'>v1.2 Native</span>
+    </a>
+    <div class='header-controls'>
+      <div class='search-box'>
+        <span class='search-icon'>&#128269;</span>
+        <input type='text' class='search-input' id='search-input' placeholder='Search docs...'>
+      </div>
+      <div class='lang-switch'>
+        <a href='../../fr/ui/window.html' class='lang-btn'>FR</a>
+        <a href='#' class='lang-btn active'>EN</a>
+      </div>
+    </div>
+  </header>
+  
+  <div class='layout-container'>
+<nav class='doc-sidebar'>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Getting Started</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../index.html'><span>Overview</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>OOP Keywords</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../keywords/class.html'><span>Class / Abstract</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/method.html'><span>Method / Override</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/properties.html'><span>Getter / Setter / Prop</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/inheritance.html'><span>Extends / Super</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/encapsulation.html'><span>Public / Protected / Private</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/lifecycle.html'><span>New / Free / Init</span><span class='badge badge-kw'>KW</span></a></li>
+      <li class='nav-item'><a href='../keywords/operators.html'><span>This / Cast / TypeOf</span><span class='badge badge-kw'>KW</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>UI Foundation & Hierarchy</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/component.html'><span>Component (Base UI)</span><span class='badge badge-base'>BASE</span></a></li>
+      <li class='nav-item'><a href='../ui/gadget.html'><span>Gadget (Native Base)</span><span class='badge badge-base'>BASE</span></a></li>
+      <li class='nav-item'><a href='../ui/customgadget.html'><span>CustomGadget (Canvas Base)</span><span class='badge badge-base'>BASE</span></a></li>
+      <li class='nav-item'><a href='../ui/container.html'><span>Container (Layout Base)</span><span class='badge badge-wpf'>WPF</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>UI Components (Controls)</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/button.html'><span>Button</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/checkbox.html'><span>CheckBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/combobox.html'><span>ComboBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/datepicker.html'><span>DatePicker</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/editor.html'><span>Editor</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/groupbox.html'><span>GroupBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/label.html'><span>Label</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/listicon.html'><span>ListIcon</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/listview.html'><span>ListView</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/progressbar.html'><span>ProgressBar</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/radiobutton.html'><span>RadioButton</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/slider.html'><span>Slider</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/spinbox.html'><span>SpinBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/tabcontrol.html'><span>TabControl</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/textbox.html'><span>TextBox</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/toggleswitch.html'><span>ToggleSwitch</span><span class='badge badge-ui'>UI</span></a></li>
+      <li class='nav-item'><a href='../ui/treeview.html'><span>TreeView</span><span class='badge badge-ui'>UI</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Responsive Layouts (WPF)</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/stackpanel.html'><span>StackPanel</span><span class='badge badge-wpf'>WPF</span></a></li>
+      <li class='nav-item'><a href='../ui/dockpanel.html'><span>DockPanel</span><span class='badge badge-wpf'>WPF</span></a></li>
+      <li class='nav-item'><a href='../ui/grid.html'><span>Grid</span><span class='badge badge-wpf'>WPF</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>MVVM Architecture & DataBinding</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/mvvm.html'><span>MVVM Architecture & Bindings</span><span class='badge badge-mvvm'>MVVM</span></a></li>
+    </ul>
+  </div>
+  <div class='nav-section'>
+    <div class='nav-section-title'>Application & Windows</div>
+    <ul class='nav-list'>
+      <li class='nav-item'><a href='../ui/application.html'><span>Application</span><span class='badge badge-core'>CORE</span></a></li>
+      <li class='nav-item active'><a href='../ui/window.html'><span>Window</span><span class='badge badge-core'>CORE</span></a></li>
+    </ul>
+  </div>
+</nav>
+    <main class='doc-content'>
+      <div class='breadcrumb'>
+        <a href='../index.html'>Home</a>
+        <span class='breadcrumb-separator'>/</span><span>UI Components</span>
+        <span class='breadcrumb-separator'>/</span><span style='color: var(--accent-blue);'>Window Class</span>
+      </div>
+      
+      <div class='page-header'>
+        <div class='title-row'>
+          <h1 class='page-title'>Window Class</h1>
+          <span class='badge badge-core'>Core UI</span>
+        </div>
+        <p class='page-lead'>Main and dialogue window encapsulation with layout auto-arrangement.</p>
+      </div>
+      
+      <div class='inheritance-box'>
+  <div class='inheritance-header'><span>&#128391;</span> Inheritance Hierarchy</div>
+  <div class='inheritance-chain'>
+    <a href='../keywords/class.html' class='inheritance-node'>Core::Object</a>
+    <span class='inheritance-arrow'>&rarr;</span>
+    <span class='inheritance-node current'>UI::Window</span>
+  </div>
+</div>
+      
+
+<div class='doc-section'>
+  <h2 class='section-title'>Description</h2>
+  <p>The <code>UI::Window</code> class encapsulates PureBasic OS windows (<code>OpenWindow</code>). It handles automated responsive layout resizing, menus, toolbars, and clean event disposal.</p>
+</div>
+
+<div class='doc-section'>
+  <h2 class='section-title'>Specific Methods</h2>
+  <div class='table-wrapper'>
+    <table>
+      <tr><th>Method</th><th>Description</th></tr>
+      <tr><td><code>Init(title.s, w.i = 800, h.i = 600, flags.i = #PB_Window_SystemMenu | #PB_Window_SizeGadget)</code></td><td>Creates window.</td></tr>
+      <tr><td><code>SetContent(*rootComponent.UI::Component)</code></td><td>Sets root layout container which auto-resizes with window bounds.</td></tr>
+      <tr><td><code>Show() / Hide()</code></td><td>Shows or hides window.</td></tr>
+      <tr><td><code>Close()</code></td><td>Closes and disposes window.</td></tr>
+    </table>
+  </div>
+</div>
+
+    </main>
+  </div>
+  
+  <footer class='doc-footer'>
+    <p>&copy; 2026 PureBasic OOP Project - MicrodevWeb | Dual License GPL v3 / Fantaisie Software</p>
+  </footer>
+</body>
+</html>

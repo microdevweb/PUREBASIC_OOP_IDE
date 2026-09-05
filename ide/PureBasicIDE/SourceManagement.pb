@@ -2021,6 +2021,7 @@ Procedure SaveSourceFile(FileName$)
       UpdateSourceStatus(0)
       
       RecentFiles_AddFile(FileName$, #False)
+      SourcePath$ = GetPathPart(FileName$)
       
       AddTools_Execute(#TRIGGER_SourceSave, *ActiveSource)
       
@@ -2290,32 +2291,32 @@ EndProcedure
 
 
 Procedure SaveSourceAs()
-  Static NewSourcePath$
+  Static LastSavedPath$
   
   If *ActiveSource = *ProjectInfo
     ProcedureReturn 0
   EndIf
   
+  Protected NewSourcePath$ = ""
+  
   If *ActiveSource\FileName$
-    
     ; Uses the full filename as input like other software
-    ;
     NewSourcePath$ = *ActiveSource\FileName$
-    
-  ElseIf NewSourcePath$ = ""
-    
-    ; if the file was already saved, use its path as a base.
-    ;
-    NewSourcePath$ = GetPathPart(SourcePath$)
-    
-  Else
-    NewSourcePath$ = GetPathPart(NewSourcePath$) ; New file to save, don't specify a filename
+  ElseIf LastSavedPath$ <> ""
+    NewSourcePath$ = LastSavedPath$
+  ElseIf SourcePath$ <> ""
+    NewSourcePath$ = SourcePath$
+  EndIf
+  
+  If NewSourcePath$ <> "" And Right(NewSourcePath$, 1) <> #Separator And FileSize(NewSourcePath$) = -2
+    NewSourcePath$ + #Separator
   EndIf
   
   FileName$ = SaveFileRequester(Language("FileStuff","SaveFileTitle"), NewSourcePath$, Language("FileStuff","Pattern"), SelectedFilePattern)
   If FileName$ <> ""
     SelectedFilePattern = SelectedFilePattern()
-    NewSourcePath$ = GetPathPart(FileName$)
+    LastSavedPath$ = GetPathPart(FileName$)
+    SourcePath$ = LastSavedPath$
     
     If GetExtensionPart(GetFilePart(FileName$)) = ""
       If SelectedFilePattern <= 1  ; (=all pb files or pb sources only)
@@ -2366,6 +2367,8 @@ Procedure SaveSourceAs()
     Result = SaveSourceFile(FileName$)
     
     If Result
+      LastSavedPath$ = GetPathPart(FileName$)
+      SourcePath$ = LastSavedPath$
       UnlinkSourceFromProject(*ActiveSource, #True)
       *ActiveSource\FileName$ = FileName$
       LinkSourceToProject(*ActiveSource)

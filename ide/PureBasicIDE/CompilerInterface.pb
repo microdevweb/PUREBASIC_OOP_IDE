@@ -2244,17 +2244,17 @@ Procedure.s TranspileOOPFile(SourceFileName$, BaseDir$ = "")
   OOP_TranspilerErrorLine = 0
   OOP_TranspilerErrorFile$ = ""
 
-  ; Check if file is .pbo or contains OOP keywords like "Class "
+  ; Check if file is .pbo or contains OOP keywords or includes
   Protected isOOP.b = #False
   If LCase(GetExtensionPart(SourceFileName$)) = "pbo"
     isOOP = #True
   Else
-    ; Scan first lines of source file to detect OOP Class
     Protected f = ReadFile(#PB_Any, SourceFileName$)
     If f
       While Not Eof(f)
-        Protected l.s = Trim(UCase(ReadString(f)))
-        If Left(l, 6) = "CLASS " Or Left(l, 7) = "METHOD " Or Left(l, 15) = "ABSTRACT CLASS "
+        Protected rawLine.s = ReadString(f)
+        Protected l.s = Trim(UCase(rawLine))
+        If Left(l, 6) = "CLASS " Or Left(l, 7) = "METHOD " Or Left(l, 15) = "ABSTRACT CLASS " Or Left(l, 10) = "NAMESPACE " Or Left(l, 6) = "USING " Or FindString(l, "NEW ") > 0 Or FindString(l, "THIS\") > 0 Or FindString(l, "SUPER::") > 0 Or FindString(l, "SUPER\") > 0 Or FindString(l, "XINCLUDEFILE") > 0 Or FindString(l, "INCLUDEFILE") > 0
           isOOP = #True
           Break
         EndIf
@@ -2268,12 +2268,24 @@ Procedure.s TranspileOOPFile(SourceFileName$, BaseDir$ = "")
   EndIf
 
   ; Locate transpiler executable
-  Protected transpilerExe$ = AppDirectory$ + "compiler\transpiler.exe"
+  Protected transpilerExe$ = "c:\PB\PB_PROJECT\PB_OOP_WORKSPACE\PUREBASIC_OOP_WORKSPACE\compiler\transpiler.exe"
   If FileSize(transpilerExe$) <= 0
-    transpilerExe$ = "c:\PB\PUREBASIC_OOP_WORKSPACE\compiler\transpiler.exe"
+    transpilerExe$ = GetPathPart(ProgramFilename()) + "..\..\compiler\transpiler.exe"
+  EndIf
+  If FileSize(transpilerExe$) <= 0
+    transpilerExe$ = AppDirectory$ + "..\..\compiler\transpiler.exe"
+  EndIf
+  If FileSize(transpilerExe$) <= 0
+    transpilerExe$ = AppDirectory$ + "compiler\transpiler.exe"
   EndIf
   If FileSize(transpilerExe$) <= 0
     transpilerExe$ = GetPathPart(ProgramFilename()) + "compiler\transpiler.exe"
+  EndIf
+  If FileSize(transpilerExe$) <= 0
+    transpilerExe$ = GetCurrentDirectory() + "compiler\transpiler.exe"
+  EndIf
+  If FileSize(transpilerExe$) <= 0
+    transpilerExe$ = "c:\PB\PUREBASIC_OOP_WORKSPACE\compiler\transpiler.exe"
   EndIf
 
   If FileSize(transpilerExe$) <= 0
@@ -2396,6 +2408,8 @@ Procedure Compiler_CompileRun(SourceFileName$, *Source.SourceFile, CheckSyntax)
   Protected actualBaseDir$ = ""
   If *Source And *Source\FileName$ <> ""
     actualBaseDir$ = GetPathPart(*Source\FileName$)
+  ElseIf *ActiveSource And *ActiveSource\FileName$ <> ""
+    actualBaseDir$ = GetPathPart(*ActiveSource\FileName$)
   EndIf
   Protected ActualSourceFile$ = TranspileOOPFile(SourceFileName$, actualBaseDir$)
   
@@ -2495,6 +2509,14 @@ Procedure Compiler_CompileRun(SourceFileName$, *Source.SourceFile, CheckSyntax)
     
     ProcedureReturn #True
   Else
+    ; Ensure all sources are unlocked from read-only if compilation failed
+    PushListPosition(FileList())
+    ForEach FileList()
+      If @FileList() <> *ProjectInfo And FileList()\EditorGadget And IsGadget(FileList()\EditorGadget)
+        SetReadOnly(FileList()\EditorGadget, 0)
+      EndIf
+    Next
+    PopListPosition(FileList())
     ProcedureReturn #False
   EndIf
   
@@ -2631,9 +2653,15 @@ Procedure Compiler_BuildTarget(SourceFileName$, TargetFileName$, *Target.Compile
   CompilerEndIf
   
   ; Transpile OOP source (.pbo / Class keywords) before passing to pbcompiler
-  Protected actualBaseDir$ = GetPathPart(SourceFileName$)
+  Protected actualBaseDir$ = ""
   If *Target And *Target\MainFile$ <> ""
     actualBaseDir$ = GetPathPart(*Target\MainFile$)
+  ElseIf *Target And *Target\FileName$ <> ""
+    actualBaseDir$ = GetPathPart(*Target\FileName$)
+  ElseIf *ActiveSource And *ActiveSource\FileName$ <> ""
+    actualBaseDir$ = GetPathPart(*ActiveSource\FileName$)
+  Else
+    actualBaseDir$ = GetPathPart(SourceFileName$)
   EndIf
   Protected ActualSourceFile$ = TranspileOOPFile(SourceFileName$, actualBaseDir$)
   

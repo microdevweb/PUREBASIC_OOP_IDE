@@ -1,6 +1,6 @@
-﻿; ============================================================================
+; ============================================================================
 ; Title:       build_ide.pb
-; Description: Automated Build Engine for PureBasic OOP IDE (Version ALPHA 1.0)
+; Description: Automated Build Engine for PureBasic OOP IDE (Version ALPHA 1.2)
 ; Author:      MicrodevWeb
 ; License:     GNU General Public License v3 (GPL v3)
 ; ============================================================================
@@ -30,8 +30,8 @@ Procedure RunCommandQuiet(cmd.s, args.s, workDir.s = "")
   ProcedureReturn -1
 EndProcedure
 
-OpenConsole("PureBasic OOP IDE Build Pipeline - ALPHA 1.0")
-LogMsg("Starting PureBasic OOP IDE compilation pipeline (ALPHA 1.0)...")
+OpenConsole("PureBasic OOP IDE Build Pipeline - ALPHA 1.2")
+LogMsg("Starting PureBasic OOP IDE compilation pipeline (ALPHA 1.2)...")
 
 ; Check compiler availability
 If FileSize(PBCompilerPath) <= 0

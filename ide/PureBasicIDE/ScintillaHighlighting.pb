@@ -3036,12 +3036,44 @@ CompilerIf #CompileWindows | #CompileLinux | #CompileMac
             EndIf
           EndIf
           
-          If AutoCompleteWindowOpen = 0 And (*scinotify\ch = '\' Or *scinotify\ch = ':' Or ValidCharacters(*scinotify\ch & $FF)) And AutoComplete_CheckAutoPopup()
+          If AutoCompleteWindowOpen = 0 And (*scinotify\ch = '\' Or *scinotify\ch = ':' Or *scinotify\ch = ' ' Or *scinotify\ch = 9 Or ValidCharacters(*scinotify\ch & $FF)) And AutoComplete_CheckAutoPopup()
             position = SendEditorMessage(#SCI_GETCURRENTPOS, 0, 0)
             line = SendEditorMessage(#SCI_LINEFROMPOSITION, position, 0)
             position = CountCharacters(*ActiveSource\EditorGadget, SendEditorMessage(#SCI_POSITIONFROMLINE, line, 0), position)
             If CheckSearchStringComment(line, position, 1)
               OpenAutoCompleteWindow()
+            EndIf
+          EndIf
+          
+          ; Auto-unindent closing brace '}' to match opening line indentation
+          If *scinotify\ch = '}'
+            Protected oopCurPos.i = SendEditorMessage(#SCI_GETCURRENTPOS, 0, 0)
+            Protected oopCurLine.i = SendEditorMessage(#SCI_LINEFROMPOSITION, oopCurPos, 0)
+            Protected oopLineStr$ = GetLine(oopCurLine)
+            If Trim(oopLineStr$) = "}"
+              ; Find matching opening brace '{'
+              Protected oopBraceDepth.i = 1
+              Protected oopScanBraceL.i
+              For oopScanBraceL = oopCurLine - 1 To 0 Step -1
+                Protected oopScanBraceText$ = Trim(GetLine(oopScanBraceL))
+                ; Skip comment lines
+                If Left(oopScanBraceText$, 1) <> ";"
+                  Protected oopPOpen.i = CountString(oopScanBraceText$, "{")
+                  Protected oopPClose.i = CountString(oopScanBraceText$, "}")
+                  oopBraceDepth + oopPClose - oopPOpen
+                  If oopBraceDepth <= 0
+                    ; Found matching opening line
+                    Protected oopOpeningIndent$ = GetIndentPrefix(GetLine(oopScanBraceL))
+                    Protected oopStartLinePos = SendEditorMessage(#SCI_POSITIONFROMLINE, oopCurLine, 0)
+                    Protected oopEndLinePos = SendEditorMessage(#SCI_GETLINEENDPOSITION, oopCurLine, 0)
+                    SendEditorMessage(#SCI_SETSEL, oopStartLinePos, oopEndLinePos)
+                    Protected oopNewBrace$ = oopOpeningIndent$ + "}"
+                    SendEditorMessage(#SCI_REPLACESEL, 0, ToAscii(oopNewBrace$))
+                    SendEditorMessage(#SCI_GOTOPOS, oopStartLinePos + Len(oopNewBrace$), 0)
+                    Break
+                  EndIf
+                EndIf
+              Next oopScanBraceL
             EndIf
           EndIf
           
@@ -3160,20 +3192,27 @@ CompilerIf #CompileWindows | #CompileLinux | #CompileMac
         ;   window with the mouse, *scinotify\position is -1 in this case, so
         ;   filter it. (also filters cases where we are not near any character)
         ;
-        If *scinotify\position > 0 And *ActiveSource And GetActiveGadget() = *ActiveSource\EditorGadget And *ActiveSource\IsCode
+        If *scinotify\position >= 0 And *ActiveSource And *ActiveSource\IsCode
           IsMouseDwelling    = 1 ; to know if the mouse still dwells when the result is received
           MouseDwellPosition = *scinotify\position
           
-          *Debugger.DebuggerData = 0
-          If *ActiveSource <> *ProjectInfo
-            *Debugger = GetDebuggerForFile(*ActiveSource)
-          EndIf
-          
-          If *Debugger
-            Debugger_EvaluateAtCursor(*scinotify\position)  ; evaluate by debugger
+          ; Check if hovering on or near OOP error line
+          Protected oopDwellLine = ScintillaSendMessage(EditorGadget, #SCI_LINEFROMPOSITION, *scinotify\position, 0) + 1
+          If *ActiveSource\OOP_Linter_ErrorLine > 0 And oopDwellLine = *ActiveSource\OOP_Linter_ErrorLine And *ActiveSource\OOP_Linter_ErrorMessage$ <> ""
+            Protected oopTip$ = "[Erreur OOP Ligne " + Str(oopDwellLine) + "]" + #NewLine + *ActiveSource\OOP_Linter_ErrorMessage$
+            ScintillaSendMessage(EditorGadget, #SCI_CALLTIPSHOW, *scinotify\position, ToAscii(oopTip$))
           Else
-            ; Todo: find a less intrusive way to display this info
-            ; DisplayItemAtCursor(*scinotify\position)  ; display type info by source parser
+            *Debugger.DebuggerData = 0
+            If *ActiveSource <> *ProjectInfo
+              *Debugger = GetDebuggerForFile(*ActiveSource)
+            EndIf
+            
+            If *Debugger
+              Debugger_EvaluateAtCursor(*scinotify\position)  ; evaluate by debugger
+            Else
+              ; Todo: find a less intrusive way to display this info
+              ; DisplayItemAtCursor(*scinotify\position)  ; display type info by source parser
+            EndIf
           EndIf
         EndIf
         
@@ -3465,7 +3504,7 @@ CompilerIf #CompileWindows | #CompileLinux | #CompileMac
     
     ApplyWordChars(*ActiveSource\EditorGadget)
     
-    SendEditorMessage(#SCI_SETMOUSEDWELLTIME, 750, 0)
+    SendEditorMessage(#SCI_SETMOUSEDWELLTIME, 350, 0)
     
     ; Auto adjust the horizontal scrollbar. Could have a performance impact according to the doc, to verify in practice
     ; https://www.purebasic.fr/english/viewtopic.php?f=23&t=50693
@@ -4227,12 +4266,21 @@ CompilerIf #CompileWindows | #CompileLinux | #CompileMac
     EndIf
 
     ; Locate transpiler executable
-    Protected transpilerExe$ = "c:\PB\PUREBASIC_OOP_WORKSPACE\compiler\transpiler.exe"
+    Protected transpilerExe$ = "c:\PB\PB_PROJECT\PB_OOP_WORKSPACE\PUREBASIC_OOP_WORKSPACE\compiler\transpiler.exe"
+    If FileSize(transpilerExe$) <= 0
+      transpilerExe$ = GetPathPart(ProgramFilename()) + "..\..\compiler\transpiler.exe"
+    EndIf
+    If FileSize(transpilerExe$) <= 0
+      transpilerExe$ = GetCurrentDirectory() + "..\..\compiler\transpiler.exe"
+    EndIf
     If FileSize(transpilerExe$) <= 0
       transpilerExe$ = GetPathPart(ProgramFilename()) + "compiler\transpiler.exe"
     EndIf
     If FileSize(transpilerExe$) <= 0
       transpilerExe$ = GetCurrentDirectory() + "compiler\transpiler.exe"
+    EndIf
+    If FileSize(transpilerExe$) <= 0
+      transpilerExe$ = "c:\PB\PUREBASIC_OOP_WORKSPACE\compiler\transpiler.exe"
     EndIf
     If FileSize(transpilerExe$) <= 0
       ProcedureReturn
@@ -4269,19 +4317,23 @@ CompilerIf #CompileWindows | #CompileLinux | #CompileMac
       linterArgs$ = "--base-dir " + #DQUOTE$ + baseDir$ + #DQUOTE$ + " "
     EndIf
     linterArgs$ + "--check " + #DQUOTE$ + tempPBO$ + #DQUOTE$
-
     Protected prg = RunProgram(transpilerExe$, linterArgs$, "", #PB_Program_Open | #PB_Program_Read | #PB_Program_Hide)
     Protected logOut$ = ""
+    Protected maxWait.i = 30
     If prg
-      While ProgramRunning(prg)
+      While ProgramRunning(prg) And maxWait > 0
         While AvailableProgramOutput(prg)
           logOut$ + ReadProgramString(prg) + #NewLine
         Wend
         Delay(5)
+        maxWait - 1
       Wend
       While AvailableProgramOutput(prg)
         logOut$ + ReadProgramString(prg) + #NewLine
       Wend
+      If ProgramRunning(prg)
+        KillProgram(prg)
+      EndIf
       CloseProgram(prg)
       DeleteFile(tempPBO$)
 
@@ -4318,3 +4370,4 @@ CompilerIf #CompileWindows | #CompileLinux | #CompileMac
   EndProcedure
   
 CompilerEndIf
+

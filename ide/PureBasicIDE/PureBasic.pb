@@ -187,6 +187,7 @@ CompilerEndIf
 
 ; windows specific
 XIncludeFile "WindowsMisc.pb"
+XIncludeFile "OOP_Help.pb"
 XIncludeFile "WindowsHelp.pb"
 
 ; linux specific
