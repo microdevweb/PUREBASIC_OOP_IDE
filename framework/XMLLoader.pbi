@@ -672,6 +672,11 @@ Namespace UI {
             *tabNode = NextXMLNode(*tabNode)
           Wend
 
+        Case "CANVAS"
+          Protected *cv.UI::Canvas = New UI::Canvas()
+          This\ApplyCommonAttributes(*cv, node, *targetWindow)
+          *createdComp = *cv
+
       EndSelect
 
       ProcedureReturn *createdComp

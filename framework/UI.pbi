@@ -37,6 +37,7 @@ XIncludeFile "controls/TabControl.pbi"
 ; Custom Controls
 XIncludeFile "controls/ToggleSwitch.pbi"
 XIncludeFile "controls/ListIcon.pbi"
+XIncludeFile "controls/Canvas.pbi"
 
 ; Declarative XML / XAML Layout Loader
 XIncludeFile "XMLLoader.pbi"
