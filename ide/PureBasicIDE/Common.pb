@@ -1069,6 +1069,7 @@ Enumeration 0
   #MENU_Purifier
   ;#MENU_CPUMonitor
   
+  #MENU_PureDesigner
   #MENU_VisualDesigner
   #MENU_StructureViewer
   #MENU_FileViewer

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window ID="WinDesigner" Title="PureDesigner (Community Edition) - PureBasic OOP" Width="1240" Height="800" MinWidth="900" MinHeight="600">
+  <DockPanel Margin="0">
+    <!-- Top Toolbar -->
+    <StackPanel Dock="Top" Orientation="Horizontal" Margin="6" Spacing="6" Height="38">
+      <Button ID="BtnNew" Text="📄 New Window" Width="110" Command="NewProjectCommand" />
+      <Button ID="BtnOpen" Text="📂 Open XML" Width="100" Command="OpenXmlCommand" />
+      <Button ID="BtnSave" Text="💾 Save XML" Width="95" Command="SaveXmlCommand" />
+      <Button ID="BtnSaveAs" Text="💾 Save As..." Width="95" Command="SaveAsXmlCommand" />
+      <Button ID="BtnExport" Text="🚀 Export Solution (4 Files)" Width="170" Command="ExportSolutionCommand" />
+      <Button ID="BtnDelete" Text="🗑 Delete Selected" Width="125" Command="DeleteSelectedCommand" />
+    </StackPanel>
+
+    <!-- Bottom Status Bar -->
+    <DockPanel Dock="Bottom" Margin="6" Height="24">
+      <Text ID="TxtStatus" Text="{Binding StatusText}" Dock="Left" />
+      <Text ID="TxtSelectedSummary" Text="{Binding SelectedType}" Dock="Right" />
+    </DockPanel>
+
+    <!-- Left Toolbox Panel -->
+    <StackPanel Dock="Left" Width="190" Margin="6" Spacing="8">
+      <GroupBox Text="Layout Containers">
+        <StackPanel Orientation="Vertical" Margin="4" Spacing="4">
+          <Button ID="BtnAddStackV" Text="➕ StackPanel (V)" Height="28" />
+          <Button ID="BtnAddStackH" Text="➕ StackPanel (H)" Height="28" />
+          <Button ID="BtnAddDock" Text="➕ DockPanel" Height="28" />
+          <Button ID="BtnAddGrid" Text="➕ Grid" Height="28" />
+          <Button ID="BtnAddGroupBox" Text="➕ GroupBox" Height="28" />
+        </StackPanel>
+      </GroupBox>
+
+      <GroupBox Text="UI Controls">
+        <StackPanel Orientation="Vertical" Margin="4" Spacing="4">
+          <Button ID="BtnAddButton" Text="➕ Button" Height="28" />
+          <Button ID="BtnAddLabel" Text="➕ Label / Text" Height="28" />
+          <Button ID="BtnAddTextBox" Text="➕ TextBox / String" Height="28" />
+          <Button ID="BtnAddCheckBox" Text="➕ CheckBox" Height="28" />
+          <Button ID="BtnAddComboBox" Text="➕ ComboBox" Height="28" />
+          <Button ID="BtnAddListView" Text="➕ ListView" Height="28" />
+          <Button ID="BtnAddProgressBar" Text="➕ ProgressBar" Height="28" />
+        </StackPanel>
+      </GroupBox>
+    </StackPanel>
+
+    <!-- Right Properties & MVVM Inspector -->
+    <StackPanel Dock="Right" Width="250" Margin="6" Spacing="8">
+      <GroupBox Text="Element Info">
+        <StackPanel Orientation="Vertical" Margin="6" Spacing="4">
+          <Text Text="Type:" />
+          <Text ID="TxtSelType" Text="{Binding SelectedType}" />
+          <Text Text="Identifier / Name:" />
+          <Text ID="TxtSelName" Text="{Binding SelectedName}" />
+        </StackPanel>
+      </GroupBox>
+
+      <GroupBox Text="Visual Properties">
+        <StackPanel Orientation="Vertical" Margin="6" Spacing="4">
+          <Text Text="Text / Label:" />
+          <TextBox ID="InputPropText" Text="{Binding PropText, Mode=TwoWay}" Height="24" />
+          
+          <Text Text="Width / Height (0 = auto):" />
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBox ID="InputPropWidth" Text="{Binding PropWidth, Mode=TwoWay}" Width="105" Height="24" />
+            <TextBox ID="InputPropHeight" Text="{Binding PropHeight, Mode=TwoWay}" Width="105" Height="24" />
+          </StackPanel>
+
+          <Text Text="Margin:" />
+          <TextBox ID="InputPropMargin" Text="{Binding PropMargin, Mode=TwoWay}" Height="24" />
+
+          <Text Text="Spacing:" />
+          <TextBox ID="InputPropSpacing" Text="{Binding PropSpacing, Mode=TwoWay}" Height="24" />
+
+          <Button ID="BtnApplyProps" Text="✔ Apply Properties" Height="28" Command="ApplyPropsCommand" />
+        </StackPanel>
+      </GroupBox>
+
+      <GroupBox Text="MVVM DataBinding">
+        <StackPanel Orientation="Vertical" Margin="6" Spacing="4">
+          <Text Text="ViewModel Property:" />
+          <TextBox ID="InputPropBinding" Text="{Binding PropBinding, Mode=TwoWay}" Height="24" />
+
+          <Text Text="Command Name:" />
+          <TextBox ID="InputPropCommand" Text="{Binding PropCommand, Mode=TwoWay}" Height="24" />
+
+          <Button ID="BtnApplyBinding" Text="🔗 Apply MVVM Bindings" Height="28" Command="ApplyPropsCommand" />
+        </StackPanel>
+      </GroupBox>
+    </StackPanel>
+
+    <!-- Center Canvas Area -->
+    <Canvas ID="CanvasDesigner" Dock="Fill" />
+  </DockPanel>
+</Window>

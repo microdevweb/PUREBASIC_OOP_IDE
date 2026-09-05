@@ -306,6 +306,7 @@ Procedure CreateIDEMenu()
     CompilerIf #SpiderBasic
       ShortcutMenuItem(#MENU_WebView, Language("MenuItem","WebView"))
     CompilerElse
+      ShortcutMenuItem(#MENU_PureDesigner, "PureDesigner (MVVM Form Designer)")
       ShortcutMenuItem(#MENU_VisualDesigner , Language("MenuItem","VisualDesigner"))
     CompilerEndIf
     ShortcutMenuItem(#MENU_FileViewer, Language("MenuItem","FileViewer"))
@@ -1432,6 +1433,20 @@ Procedure MainMenuEvent(MenuItemID)
     Case #MENU_FormImageManager
       InitImgList()
       
+    Case #MENU_PureDesigner
+      Define pboDesPath.s = GetPathPart(ProgramFilename()) + "pbo_designer.exe"
+      If FileSize(pboDesPath) <= 0
+        pboDesPath = GetPathPart(ProgramFilename()) + "..\PUREBASIC_OOP_DESIGNER\pbo_designer.exe"
+      EndIf
+      If FileSize(pboDesPath) <= 0
+        pboDesPath = "C:\PB\PB_PROJECT\PB_OOP_WORKSPACE\PUREBASIC_OOP_DESIGNER\pbo_designer.exe"
+      EndIf
+      If FileSize(pboDesPath) > 0
+        RunProgram(pboDesPath, "", GetPathPart(pboDesPath))
+      Else
+        MessageRequester("PureDesigner", "PureDesigner executable not found. Please build PUREBASIC_OOP_DESIGNER first.", #PB_MessageRequester_Warning)
+      EndIf
+
     Case #MENU_VisualDesigner
       ActivateTool("Form")
       
